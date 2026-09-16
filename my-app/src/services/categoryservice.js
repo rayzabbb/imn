@@ -35,3 +35,15 @@ export const getProductsBySubCategory = async (subCategoryId) => {
     throw error;
   }
 };
+
+// Fetch a single product by id
+export const getProductById = async (productId) => {
+  try {
+    const response = await axios.get(`http://localhost:8080/api/product/GetProductById/${productId}`);
+    console.log("Product fetched:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching product by id:', error);
+    throw error;
+  }
+};

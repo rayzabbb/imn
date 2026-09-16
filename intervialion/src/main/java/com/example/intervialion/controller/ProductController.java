@@ -1,4 +1,4 @@
-package com.example.intervialion.controller;
+    package com.example.intervialion.controller;
 
 import com.example.intervialion.model.Product;
 import com.example.intervialion.service.ProductRepository;
@@ -32,6 +32,15 @@ public class ProductController {
             return ResponseEntity.noContent().build();
         }
         return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @GetMapping("/GetProductById/{id}")
+    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+        Product product = productRepository.findById(id).orElse(null);
+        if (product == null) {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(product, HttpStatus.OK);
     }
 }
 

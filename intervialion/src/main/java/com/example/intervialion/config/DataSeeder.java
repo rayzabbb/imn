@@ -43,41 +43,52 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (categoryRepository.count() > 1) {
-            return; // already seeded (or real data exists beyond the original demo row) - don't duplicate
-        }
+        List<User> sellers = getOrCreateSellers();
 
-        List<User> sellers = seedSellers();
-        List<CategorySeed> seedData = buildSeedData();
+        if (categoryRepository.count() <= 1) {
+            List<CategorySeed> seedData = buildSeedData();
+            int sellerIndex = 0;
+            for (CategorySeed categorySeed : seedData) {
+                Category category = new Category();
+                category.setName(categorySeed.name());
+                category.setDescription(categorySeed.description());
+                category = categoryRepository.save(category);
 
-        int sellerIndex = 0;
-        for (CategorySeed categorySeed : seedData) {
-            Category category = new Category();
-            category.setName(categorySeed.name());
-            category.setDescription(categorySeed.description());
-            category = categoryRepository.save(category);
+                for (SubCategorySeed subCategorySeed : categorySeed.subCategories()) {
+                    SubCategory subCategory = new SubCategory();
+                    subCategory.setName(subCategorySeed.name());
+                    subCategory.setCategory(category);
+                    subCategory = subCategoryRepository.save(subCategory);
 
-            for (SubCategorySeed subCategorySeed : categorySeed.subCategories()) {
-                SubCategory subCategory = new SubCategory();
-                subCategory.setName(subCategorySeed.name());
-                subCategory.setCategory(category);
-                subCategory = subCategoryRepository.save(subCategory);
-
-                for (ProductSeed productSeed : subCategorySeed.products()) {
-                    Product product = new Product();
-                    product.setName(productSeed.name());
-                    product.setManufacturerNameOrBrand(productSeed.brand());
-                    product.setQuality(productSeed.quality());
-                    product.setSubCategory(subCategory);
-                    product.setUser(sellers.get(sellerIndex % sellers.size()));
-                    productRepository.save(product);
-                    sellerIndex++;
+                    for (ProductSeed productSeed : subCategorySeed.products()) {
+                        Product product = new Product();
+                        product.setName(productSeed.name());
+                        product.setManufacturerNameOrBrand(productSeed.brand());
+                        product.setQuality(productSeed.quality());
+                        product.setSubCategory(subCategory);
+                        product.setUser(sellers.get(sellerIndex % sellers.size()));
+                        productRepository.save(product);
+                        sellerIndex++;
+                    }
                 }
             }
         }
+
+        // Additive, idempotent top-up: gives a handful of representative subcategories
+        // a richer product count so the product grid has enough items to demo properly.
+        // Safe to run on every startup - skips any product name that already exists.
+        topUpFeaturedSubcategories(sellers);
     }
 
-    private List<User> seedSellers() {
+    private List<User> getOrCreateSellers() {
+        List<String> usernames = List.of("noa_levi", "yossi_cohen", "michal_david");
+        List<User> existing = userRepository.findAll().stream()
+                .filter(u -> usernames.contains(u.getUsername()))
+                .toList();
+        if (existing.size() == usernames.size()) {
+            return existing;
+        }
+
         User noa = new User();
         noa.setUsername("noa_levi");
         noa.setPassword("seed1234");
@@ -106,6 +117,79 @@ public class DataSeeder implements CommandLineRunner {
         michal.setTimeToContac("אחרי הצהריים");
 
         return userRepository.saveAll(List.of(noa, yossi, michal));
+    }
+
+    private void topUpFeaturedSubcategories(List<User> sellers) {
+        record TopUp(String subCategoryName, List<ProductSeed> extraProducts) {
+        }
+
+        List<TopUp> topUps = List.of(
+                new TopUp("טלפונים", List.of(
+                        new ProductSeed("iPhone 14 Pro", "Apple", "כמו חדש"),
+                        new ProductSeed("Pixel 7", "Google", "משומש"),
+                        new ProductSeed("P40", "Huawei", "משומש")
+                )),
+                new TopUp("מחשבים", List.of(
+                        new ProductSeed("מחשב נייד ThinkPad", "Lenovo", "משומש"),
+                        new ProductSeed("MacBook Air", "Apple", "כמו חדש"),
+                        new ProductSeed("מחשב נייח Aspire", "Acer", "משומש")
+                )),
+                new TopUp("אוזניות", List.of(
+                        new ProductSeed("אוזניות Bluetooth", "JBL", "כמו חדש"),
+                        new ProductSeed("AirPods", "Apple", "משומש"),
+                        new ProductSeed("אוזניות אולפן", "Sennheiser", "כמו חדש")
+                )),
+                new TopUp("נעליים", List.of(
+                        new ProductSeed("סניקרס", "Adidas", "כמו חדש"),
+                        new ProductSeed("All Star", "Converse", "משומש"),
+                        new ProductSeed("כפכפי קיץ", "Crocs", "חדש")
+                )),
+                new TopUp("בגדי גברים", List.of(
+                        new ProductSeed("מכנסי ג'ינס", "Levi's", "משומש"),
+                        new ProductSeed("סווטשירט", "Adidas", "כמו חדש"),
+                        new ProductSeed("חליפה", "H&M", "משומש")
+                )),
+                new TopUp("קונסולות", List.of(
+                        new ProductSeed("Xbox Series S", "Microsoft", "כמו חדש"),
+                        new ProductSeed("Steam Deck", "Valve", "כמו חדש"),
+                        new ProductSeed("PlayStation 4", "Sony", "משומש")
+                )),
+                new TopUp("רהיטים", List.of(
+                        new ProductSeed("כורסא", "IKEA", "משומש"),
+                        new ProductSeed("מיטה זוגית", "IKEA", "כמו חדש"),
+                        new ProductSeed("ארון בגדים", "Home Center", "משומש")
+                ))
+        );
+
+        int sellerIndex = 0;
+        for (TopUp topUp : topUps) {
+            SubCategory subCategory = subCategoryRepository.findByName(topUp.subCategoryName())
+                    .stream()
+                    .findFirst()
+                    .orElse(null);
+            if (subCategory == null) {
+                continue;
+            }
+
+            List<String> existingNames = productRepository.findBySubCategoryId(subCategory.getId())
+                    .stream()
+                    .map(Product::getName)
+                    .toList();
+
+            for (ProductSeed productSeed : topUp.extraProducts()) {
+                if (existingNames.contains(productSeed.name())) {
+                    continue;
+                }
+                Product product = new Product();
+                product.setName(productSeed.name());
+                product.setManufacturerNameOrBrand(productSeed.brand());
+                product.setQuality(productSeed.quality());
+                product.setSubCategory(subCategory);
+                product.setUser(sellers.get(sellerIndex % sellers.size()));
+                productRepository.save(product);
+                sellerIndex++;
+            }
+        }
     }
 
     private List<CategorySeed> buildSeedData() {

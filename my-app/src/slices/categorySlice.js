@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getCategories, getSubCategoriesByCategory, getProductsBySubCategory } from '../services/categoryservice';
+import { getCategories, getSubCategoriesByCategory, getProductsBySubCategory, getProductById } from '../services/categoryservice';
 
 // פעולה אסינכרונית להורדת קטגוריות
 export const fetchCategories = createAsyncThunk(
@@ -28,6 +28,15 @@ export const fetchProductsBySubCategory = createAsyncThunk(
   }
 );
 
+// פעולה אסינכרונית להורדת מוצר בודד לפי מזהה
+export const fetchProductById = createAsyncThunk(
+  'category/fetchProductById',
+  async (productId) => {
+    const product = await getProductById(productId);
+    return { productId, product };
+  }
+);
+
 // ה-Slice שמנהל את המצב
 const categorySlice = createSlice({
   name: 'category',
@@ -35,6 +44,7 @@ const categorySlice = createSlice({
     categories: [],
     subCategoryList: {},
     products: {},
+    productDetails: {},
     loading: false,
     error: null,
   },
@@ -77,6 +87,20 @@ const categorySlice = createSlice({
       state.products[subCategoryId] = products;
     });
     builder.addCase(fetchProductsBySubCategory.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message;
+    });
+
+    // טיפול בטעינת מוצר בודד
+    builder.addCase(fetchProductById.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(fetchProductById.fulfilled, (state, action) => {
+      state.loading = false;
+      const { productId, product } = action.payload;
+      state.productDetails[productId] = product;
+    });
+    builder.addCase(fetchProductById.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message;
     });
