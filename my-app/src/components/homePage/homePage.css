@@ -1,0 +1,48 @@
+/* HomePage.css */
+
+/* דף הבית */
+.home-page {
+  background-color: #fff; /* רקע לבן לדף הבית */
+  padding: 40px 20px;
+  text-align: center;
+  font-family: "Arial", sans-serif; /* פונטים */
+}
+
+/* כותרת */
+.header {
+  margin-bottom: 40px; /* ריווח בין הכותרת לשאר התוכן */
+}
+
+/* כותרת ראשית h1 */
+.header h1 {
+  font-size: 72px; /* גודל מאוד גדול לכותרת */
+  font-weight: bold;
+  color: #f39c12; /* צבע כתום חם */
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: #fff; /* רקע לבן */
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* פסקה ראשונה */
+.header p:nth-of-type(1) {
+  font-size: 36px; /* טקסט יותר גדול */
+  color: #e67e22; /* צבע כתום חזק */
+  margin: 10px 0;
+  padding: 12px;
+  background-color: #fff; /* רקע לבן */
+  border-radius: 8px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* פסקה שנייה */
+.header p:nth-of-type(2) {
+  font-size: 30px; /* טקסט בגודל גדול */
+  color: #d35400; /* צבע חום כתום */
+  margin: 10px 0;
+  padding: 12px;
+  background-color: #fff; /* רקע לבן */
+  border-radius: 8px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+}

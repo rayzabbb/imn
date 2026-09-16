@@ -1,0 +1,39 @@
+.about-container {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    padding: 2rem;
+    background-color: #fffef6;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  
+  .about-image img {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 1rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  
+  .about-text {
+    flex: 1;
+    text-align: right;
+  }
+  
+  .about-text h2 {
+    color: #6c4f19;
+    margin-bottom: 1rem;
+  }
+  
+  .about-text p {
+    margin-bottom: 1rem;
+    color: #444;
+    line-height: 1.6;
+    font-size: 1.1rem;
+  }
+  
+  .closing-line {
+    font-weight: bold;
+    color: #c99700;
+  }
+  

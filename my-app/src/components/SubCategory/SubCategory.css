@@ -1,0 +1,91 @@
+/* כללי - Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+  
+body {
+    font-family: Arial, sans-serif;
+    background-color: #82b9ff; /* צבע הרקע */
+    color: #333;
+}
+  
+/* כותרת */
+h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-top: 40px;
+    color: #444;
+}
+  
+/* מיכל תתי קטגוריות */
+.subcategories-container {
+    padding: 10px clamp(10px, 5vw, 50px); /* ריווח רספונסיבי ימינה ושמאלה */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* ריבועים גדולים */
+    gap: 20px;
+    padding: 20px;
+    margin-top: 30px;
+    height: 85vh;
+    max-width: 95vw;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-y: auto;
+}
+
+/* עיצוב הכפתורים */
+.subcategories-container button {
+    background-color: #4d90fe; /* צבע תת קטגוריה */
+    color: #fff;
+    border: none;
+    border-radius: 15px;
+    font-size: 3rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    aspect-ratio: 1 / 1; /* ריבוע מושלם */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-transform: capitalize;
+}
+
+/* כאשר הכפתור מופעל */
+.subcategories-container button:hover {
+    background-color: #357ae8;
+    transform: scale(1.05);
+}
+  
+/* כאשר הכפתור נלחץ */
+.subcategories-container button:active {
+    background-color: #2a61c7;
+}
+
+/* עיצוב פס הגלילה */
+.subcategories-container {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #4d90fe #cfe2ff; /* צבע הגלילה והרקע */
+}
+
+/* Chrome, Edge, Safari */
+.subcategories-container::-webkit-scrollbar {
+    width: 12px;
+}
+
+.subcategories-container::-webkit-scrollbar-track {
+    background: #cfe2ff;
+    border-radius: 10px;
+}
+
+.subcategories-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #82b9ff, #4d90fe);
+    border-radius: 10px;
+    border: 3px solid #cfe2ff;
+}
+
+.subcategories-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #4d90fe, #357ae8);
+}

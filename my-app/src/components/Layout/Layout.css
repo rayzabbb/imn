@@ -1,0 +1,70 @@
+/* סטייל לסרגל ולקטגוריות */
+body {
+    margin: 0;
+    font-family: "Arial", sans-serif;
+    background-color: #ffffff;
+  }
+  
+  .header {
+    text-align: center;
+    padding: 10px 0;
+    background-color: #fff;
+  }
+  
+  .header h1 {
+    margin: 0;
+    padding: 10px;
+    background-color: #ff8c00; /* צבע חמים ומזמין */
+    color: #fff;
+    font-size: 32px;
+    font-weight: bold;
+  }
+  
+  .header p:nth-of-type(1) {
+    margin: 0;
+    padding: 10px;
+    background-color: #f4a300; /* צבע חם יותר */
+    color: #fff;
+  }
+  
+  .header p:nth-of-type(2) {
+    margin: 0;
+    padding: 10px;
+    background-color: #f9b440; /* צבע בהיר ושמשי */
+    color: #fff;
+  }
+  
+  /* עיצוב הסרגל ניווט */
+  .nav-bar {
+    display: flex;
+    justify-content: center;
+    background-color: #f1f1f1; /* צבע ניטרלי */
+    padding: 10px 0;
+    gap: 20px;
+    border-top: 1px solid #ccc; /* גבול עדין בין הסרגל לתוכן */
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .nav-bar a {
+    text-decoration: none;
+    color: #444; /* צבע כהה כדי ליצור ניגוד */
+    font-weight: bold;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .nav-bar a:hover {
+    background-color: #ff8c00; /* צבע חם כשעוברים על הקישור */
+    color: white; /* לשנות את הצבע לכחול כהה כשעוברים */
+  }
+  
+  /* עיצוב תוכן הדף */
+  .content {
+    padding: 20px;
+    background-color: #fff; /* רקע לבן */
+    color: #444; /* צבע טקסט כהה ונעים לקריאה */
+    font-size: 16px;
+  }
+  

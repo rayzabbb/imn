@@ -1,0 +1,72 @@
+/* Category.css */
+
+/* כללי - Reset */
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(to bottom, #b0d8ff 20%, #82b9ff 20%, #82b9ff 100%); /* גרדיאנט בהיר יותר בחלק העליון */
+        color: #333;
+      }
+      
+  
+  
+  /* כותרת */
+  h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-top: 40px;
+    color: #444;
+  }
+  
+  /* מיכל קטגוריות */
+  .categories-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    margin-top: 30px;
+  }
+  
+  /* כפתור קטגוריה */
+  .category-button {
+    background-color: #4d90fe; /* צבע כחול דמוי יד2 */
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 20px;
+    font-size: 1.2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    display: block;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-transform: capitalize;
+  }
+  
+  /* כאשר הכפתור מופעל */
+  .category-button:hover {
+    background-color: #357ae8; /* שינוי צבע בעת hover */
+    transform: scale(1.05);
+  }
+  
+  /* כאשר הכפתור נלחץ */
+  .category-button:active {
+    background-color: #2a61c7; /* שינוי צבע בעת לחיצה */
+  }
+  
+  /* Loading - טקסט שיתצוגה בעת טעינה */
+  .loading {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-top: 100px;
+    color: #777;
+  }
+  
