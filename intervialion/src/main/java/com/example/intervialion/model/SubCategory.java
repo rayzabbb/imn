@@ -19,7 +19,7 @@ public class SubCategory {
     private Category category;
 
     @OneToMany(mappedBy = "subCategory", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference // טוען את המוצרים תחת תת הקטגוריה
+    @JsonManagedReference("subCategory-products") // טוען את המוצרים תחת תת הקטגוריה
     private List<Product> products;
     public SubCategory() {
     }

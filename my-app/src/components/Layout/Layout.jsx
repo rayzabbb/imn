@@ -42,10 +42,10 @@ const Layout = () => {
               <SearchIcon fontSize="small" />
             </button>
 
-            <button type="button" className="publish-btn">
+            <Link to="/publish" className="publish-btn" onClick={closeMenu}>
               <AddIcon fontSize="small" />
               <span>פרסום חפץ</span>
-            </button>
+            </Link>
 
             <button type="button" className="icon-btn navbar-user" aria-label="אזור אישי">
               <PersonOutlineIcon fontSize="small" />

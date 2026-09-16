@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import SubCategory from './components/SubCategory/SubCategory';
 import Products from './components/Products/Products';
 import ProductDetails from './components/ProductDetails/ProductDetails';
+import CreateListing from './components/CreateListing/CreateListing';
 import React from 'react';
 import Category from './components/Category/Category';
 import HomePage from './components/HomePage/HomePage';
@@ -19,6 +20,7 @@ function App() {
           <Route path="subcategory/:categoryId" element={<SubCategory />} />
           <Route path="products/:subCategoryId" element={<Products />} />
           <Route path="product/:productId" element={<ProductDetails />} />
+          <Route path="publish" element={<CreateListing />} />
           <Route path="/about" element={<AboutUs />} />
 
           {/* בעתיד אפשר להוסיף גם /about וכו' */}

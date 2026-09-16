@@ -47,3 +47,14 @@ export const getProductById = async (productId) => {
     throw error;
   }
 };
+
+// Create a new product listing
+export const addProduct = async (productPayload) => {
+  try {
+    const response = await axios.post('http://localhost:8080/api/product/addProduct', productPayload);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating product:', error);
+    throw error;
+  }
+};

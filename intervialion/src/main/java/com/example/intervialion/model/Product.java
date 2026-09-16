@@ -14,12 +14,12 @@ public class Product {
 
     @ManyToOne
     @JoinColumn(name = "sub_category_id", nullable = false)
-    @JsonBackReference // מונע חזרה אינסופית מתת הקטגוריה
+    @JsonBackReference("subCategory-products") // מונע חזרה אינסופית מתת הקטגוריה
     private SubCategory subCategory;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference // מונע חזרה אינסופית מהמשתמש
+    @JsonBackReference("user-products") // מונע חזרה אינסופית מהמשתמש
     private User user;
     public Product() {}
 

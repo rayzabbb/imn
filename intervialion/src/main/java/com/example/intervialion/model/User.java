@@ -1,4 +1,5 @@
 package com.example.intervialion.model;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class User {
 
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("user-products") // תואם ל-@JsonBackReference בשדה user שב-Product
     private List<Product> products; // שונה מ-product ל-products
 
 
