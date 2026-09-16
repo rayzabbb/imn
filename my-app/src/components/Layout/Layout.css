@@ -1,4 +1,6 @@
 /* סטייל לסרגל ולקטגוריות */
+@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap");
+
 body {
     margin: 0;
     font-family: "Arial", sans-serif;
@@ -34,32 +36,283 @@ body {
     color: #fff;
   }
   
-  /* עיצוב הסרגל ניווט */
-  .nav-bar {
+  /* ============================= */
+  /* Navbar (modern marketplace header) */
+  /* ============================= */
+
+  .site-navbar {
+    --navbar-bg: #ffffff;
+    --navbar-border: #eef0f3;
+    --navbar-shadow: 0 2px 14px rgba(15, 23, 42, 0.06);
+    --navbar-text: #1f2937;
+    --navbar-text-muted: #6b7280;
+    --navbar-accent: #ff6a3d;
+    --navbar-accent-hover: #e85a2c;
+    --navbar-accent-soft: rgba(255, 106, 61, 0.1);
+
+    font-family: "Rubik", "Arial", sans-serif;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--navbar-bg);
+    border-bottom: 1px solid var(--navbar-border);
+    box-shadow: var(--navbar-shadow);
+  }
+
+  .navbar-container {
     display: flex;
-    justify-content: center;
-    background-color: #f1f1f1; /* צבע ניטרלי */
-    padding: 10px 0;
-    gap: 20px;
-    border-top: 1px solid #ccc; /* גבול עדין בין הסרגל לתוכן */
-    border-bottom: 1px solid #ccc;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 24px;
   }
-  
-  .nav-bar a {
+
+  /* Brand */
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     text-decoration: none;
-    color: #444; /* צבע כהה כדי ליצור ניגוד */
-    font-weight: bold;
-    padding: 8px 15px;
+    color: var(--navbar-text);
+    flex-shrink: 0;
+  }
+
+  .navbar-brand .brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background-color: var(--navbar-accent);
+    color: #fff;
+  }
+
+  .navbar-brand .brand-name {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+
+  /* Links */
+  .navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .navbar-links--mobile {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+  }
+
+  .navbar-link {
+    text-decoration: none;
+    color: var(--navbar-text-muted);
+    font-weight: 500;
+    font-size: 15px;
+    padding: 9px 14px;
     border-radius: 8px;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
   }
-  
-  .nav-bar a:hover {
-    background-color: #ff8c00; /* צבע חם כשעוברים על הקישור */
-    color: white; /* לשנות את הצבע לכחול כהה כשעוברים */
+
+  .navbar-link:hover {
+    color: var(--navbar-accent);
+    background-color: var(--navbar-accent-soft);
   }
-  
+
+  /* Actions */
+  .navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background-color: transparent;
+    color: var(--navbar-text-muted);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    padding: 0;
+  }
+
+  .icon-btn:hover,
+  .icon-btn--active {
+    background-color: var(--navbar-accent-soft);
+    color: var(--navbar-accent);
+  }
+
+  .icon-btn:focus-visible {
+    outline: 2px solid var(--navbar-accent);
+    outline-offset: 2px;
+  }
+
+  .navbar-menu-toggle {
+    display: none;
+  }
+
+  .publish-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 16px;
+    background-color: var(--navbar-accent);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(255, 106, 61, 0.28);
+    transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .publish-btn:hover {
+    background-color: var(--navbar-accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(255, 106, 61, 0.34);
+  }
+
+  .publish-btn:active {
+    transform: translateY(0);
+  }
+
+  .publish-btn:focus-visible {
+    outline: 2px solid var(--navbar-accent-hover);
+    outline-offset: 2px;
+  }
+
+  /* Search dropdown panel */
+  .navbar-search-panel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 14px;
+    animation: navbar-fade-down 0.18s ease;
+  }
+
+  .navbar-search-panel-icon {
+    color: var(--navbar-text-muted);
+    flex-shrink: 0;
+  }
+
+  .navbar-search-input {
+    flex: 1;
+    border: 1px solid var(--navbar-border);
+    background-color: #f8f9fb;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--navbar-text);
+    outline: none;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .navbar-search-input:focus {
+    border-color: var(--navbar-accent);
+    background-color: #fff;
+  }
+
+  @keyframes navbar-fade-down {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Mobile panel */
+  .navbar-mobile-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4px 24px 16px;
+    border-top: 1px solid var(--navbar-border);
+    animation: navbar-fade-down 0.18s ease;
+  }
+
+  .navbar-user-mobile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 10px 14px;
+    border: 1px solid var(--navbar-border);
+    border-radius: 8px;
+    background-color: #f8f9fb;
+    color: var(--navbar-text);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .navbar-user-mobile:hover {
+    background-color: var(--navbar-accent-soft);
+    color: var(--navbar-accent);
+  }
+
+  @media (max-width: 860px) {
+    .navbar-links--desktop,
+    .navbar-user {
+      display: none;
+    }
+
+    .navbar-menu-toggle {
+      display: inline-flex;
+    }
+
+    .navbar-container {
+      padding: 10px 16px;
+    }
+
+    .publish-btn span {
+      display: none;
+    }
+
+    .publish-btn {
+      padding: 9px;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+    }
+
+    .navbar-search-panel,
+    .navbar-mobile-panel {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .navbar-brand .brand-name {
+      font-size: 16px;
+    }
+  }
+
   /* עיצוב תוכן הדף */
   .content {
     padding: 20px;

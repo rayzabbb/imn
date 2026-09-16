@@ -24,4 +24,13 @@ public class SubCategoryController {
         }
         return new ResponseEntity<>(subCategories, HttpStatus.OK);
     }
+
+    @GetMapping("/GetSubCategoriesByCategory/{id}")
+    public ResponseEntity<List<SubCategory>> getSubCategoriesByCategory(@PathVariable Long id) {
+        List<SubCategory> subCategories = subCategoryRepository.findByCategoryId(id);
+        if (subCategories.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return new ResponseEntity<>(subCategories, HttpStatus.OK);
+    }
 }

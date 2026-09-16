@@ -24,5 +24,14 @@ public class ProductController {
         }
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
+
+    @GetMapping("/GetProductsBySubCategory/{id}")
+    public ResponseEntity<List<Product>> getProductsBySubCategory(@PathVariable Long id) {
+        List<Product> products = productRepository.findBySubCategoryId(id);
+        if (products.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
 }
 

@@ -35,7 +35,7 @@ console.log("Products data:", products);
           sortedProducts.map((product) => (
             <div key={product.id} className="product-item">
               <h2>{product.name}</h2>
-              <p>Manufacturer/Brand: {product.ManufacturerNameOrBrand}</p>
+              <p>Manufacturer/Brand: {product.manufacturerNameOrBrand}</p>
               <p>Quality: {product.quality}</p>
             </div>
           ))
