@@ -107,7 +107,7 @@ const Products = () => {
       <div className="products-page-header">
         <div>
           <h1>{pageTitle}</h1>
-          <p>{rawProducts.length} מוצרים זמינים</p>
+          <p>{rawProducts.length} מוצרים</p>
         </div>
 
         <div className="products-controls">
@@ -116,7 +116,7 @@ const Products = () => {
             <input
               type="text"
               className="products-search-input"
-              placeholder="חיפוש מוצר..."
+              placeholder="חיפוש במוצרים..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
