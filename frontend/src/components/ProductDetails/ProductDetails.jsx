@@ -12,8 +12,18 @@ import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import TagOutlinedIcon from '@mui/icons-material/TagOutlined';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
 import { fetchProductById, fetchCategories } from '../../slices/categorySlice';
-import { getInterestStatus, expressInterest, cancelInterest } from '../../services/interestservice';
+import {
+  getInterestStatus,
+  expressInterest,
+  cancelInterest,
+  getDonorContact,
+} from '../../services/interestservice';
 import './ProductDetails.css';
 
 const QUALITY_STYLES = {
@@ -40,11 +50,20 @@ const ProductDetails = () => {
   const [interestLoading, setInterestLoading] = useState(false);
   const [interestError, setInterestError] = useState(null);
 
+  // Donor's contact details - only fetched once this viewer has expressed
+  // interest (the backend enforces the same gate, so this is purely a UI
+  // cache of what expressing interest already unlocked).
+  const [donorContact, setDonorContact] = useState(null);
+  const [donorContactLoading, setDonorContactLoading] = useState(false);
+  const [donorContactError, setDonorContactError] = useState(null);
+
   useEffect(() => {
     setIsLoading(true);
     setLoadError(null);
     setInterest({ interested: false, owner: false });
     setInterestError(null);
+    setDonorContact(null);
+    setDonorContactError(null);
     dispatch(fetchProductById(productId))
       .unwrap()
       .catch((err) => {
@@ -66,6 +85,19 @@ const ProductDetails = () => {
         // state; the user can still try clicking it.
       });
   }, [productId, isLoggedIn, currentUser?.id]);
+
+  useEffect(() => {
+    if (!isLoggedIn || !currentUser?.id || !interest.interested) {
+      setDonorContact(null);
+      return;
+    }
+    setDonorContactLoading(true);
+    setDonorContactError(null);
+    getDonorContact(productId, currentUser.id)
+      .then(setDonorContact)
+      .catch(() => setDonorContactError('שגיאה בטעינת פרטי הקשר של המוסר'))
+      .finally(() => setDonorContactLoading(false));
+  }, [productId, isLoggedIn, currentUser?.id, interest.interested]);
 
   const handleInterestClick = () => {
     if (!isLoggedIn) {
@@ -210,10 +242,47 @@ const ProductDetails = () => {
               </div>
             )}
 
-            <button type="button" className="pd-cta-btn">
-              <ChatBubbleOutlineIcon fontSize="small" />
-              יצירת קשר עם המוכר
-            </button>
+            {interest.interested && (
+              <div className="pd-donor-contact">
+                <h2>
+                  <ChatBubbleOutlineIcon fontSize="small" />
+                  פרטי יצירת קשר עם המוסר
+                </h2>
+
+                {donorContactLoading && <p className="pd-donor-contact-loading">טוען פרטי קשר...</p>}
+
+                {!donorContactLoading && donorContactError && (
+                  <div className="state-banner state-banner--error">
+                    <ErrorOutlineIcon fontSize="small" />
+                    <span>{donorContactError}</span>
+                  </div>
+                )}
+
+                {!donorContactLoading && donorContact && (
+                  <ul className="pd-donor-contact-list">
+                    <li>
+                      <PersonOutlineIcon fontSize="small" /> {donorContact.username}
+                    </li>
+                    <li>
+                      <EmailOutlinedIcon fontSize="small" /> {donorContact.email}
+                    </li>
+                    <li>
+                      <PhoneOutlinedIcon fontSize="small" /> {donorContact.phone}
+                    </li>
+                    {donorContact.city && (
+                      <li>
+                        <LocationOnOutlinedIcon fontSize="small" /> {donorContact.city}
+                      </li>
+                    )}
+                    {donorContact.timeToContac && (
+                      <li>
+                        <AccessTimeOutlinedIcon fontSize="small" /> {donorContact.timeToContac}
+                      </li>
+                    )}
+                  </ul>
+                )}
+              </div>
+            )}
 
             <div className="pd-details-section">
               <h2>פרטי המוצר</h2>

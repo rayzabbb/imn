@@ -39,10 +39,9 @@ public class UserService {
     }
 
     /**
-     * Deletes a user. Three FK relations point at User with no cascade of
-     * their own and are cleared first:
+     * Deletes a user. Two FK relations point at User with no cascade of their
+     * own and are cleared first:
      * - interests this user expressed on others' products,
-     * - other products that selected this user as their recipient,
      * - interests on products THIS user owns: User.products already cascades
      *   (CascadeType.ALL) to delete those products, but that Hibernate-level
      *   cascade happens outside ProductService.deleteProduct, so it would hit
@@ -52,10 +51,6 @@ public class UserService {
     @Transactional
     public void delete(User user) {
         interestRepository.deleteByUserId(user.getId());
-        for (Product recipientOf : productRepository.findByRecipientId(user.getId())) {
-            recipientOf.setRecipient(null);
-            productRepository.save(recipientOf);
-        }
         for (Product owned : productRepository.findByUserId(user.getId())) {
             interestRepository.deleteByProductId(owned.getId());
         }

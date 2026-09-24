@@ -322,14 +322,8 @@
   color: var(--pa-text-muted);
 }
 
-.pa-interested-row .pa-action-btn {
-  flex: none;
-  width: auto;
-  white-space: nowrap;
-}
-
-/* Recipient info (AT_CENTER / TAKEN) */
-.pa-recipient-info {
+/* Collection-center status (AT_CENTER / TAKEN) */
+.pa-status-action {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -342,19 +336,19 @@
   color: var(--pa-text);
 }
 
-.pa-recipient-info .pa-action-btn {
+.pa-status-action .pa-action-btn {
   flex: none;
   width: auto;
   white-space: nowrap;
 }
 
-.pa-recipient-info--done {
+.pa-status-action--done {
   background-color: #ecfdf5;
   border-color: #a7f3d0;
   justify-content: flex-start;
 }
 
-.pa-recipient-info--done svg {
+.pa-status-action--done svg {
   color: #047857;
 }
 

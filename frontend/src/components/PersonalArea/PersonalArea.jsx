@@ -14,7 +14,13 @@ import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import { fetchMyProducts, removeMyProduct, markMyProductTaken } from '../../slices/myProductsSlice';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+import {
+  fetchMyProducts,
+  removeMyProduct,
+  moveMyProductToCenter,
+  markMyProductTaken,
+} from '../../slices/myProductsSlice';
 import EditProductModal from './EditProductModal';
 import InterestedUsersPanel from './InterestedUsersPanel';
 import './PersonalArea.css';
@@ -35,6 +41,9 @@ const PersonalArea = () => {
   const [deletingId, setDeletingId] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [expandedProductId, setExpandedProductId] = useState(null);
+  const [confirmingMoveId, setConfirmingMoveId] = useState(null);
+  const [movingId, setMovingId] = useState(null);
+  const [moveError, setMoveError] = useState(null);
   const [confirmingTakenId, setConfirmingTakenId] = useState(null);
   const [markingTakenId, setMarkingTakenId] = useState(null);
   const [takenError, setTakenError] = useState(null);
@@ -70,6 +79,23 @@ const PersonalArea = () => {
 
   const toggleInterestedPanel = (productId) => {
     setExpandedProductId((current) => (current === productId ? null : productId));
+  };
+
+  const handleMoveToCenterClick = (productId) => {
+    if (confirmingMoveId !== productId) {
+      setConfirmingMoveId(productId);
+      return;
+    }
+
+    setMovingId(productId);
+    setMoveError(null);
+    dispatch(moveMyProductToCenter({ productId, requesterUserId: currentUser.id }))
+      .unwrap()
+      .catch((err) => setMoveError(typeof err === 'string' ? err : 'שגיאה בהעברת המוצר למרכז'))
+      .finally(() => {
+        setMovingId(null);
+        setConfirmingMoveId(null);
+      });
   };
 
   const handleMarkTakenClick = (productId) => {
@@ -132,6 +158,12 @@ const PersonalArea = () => {
               <span>{deleteError}</span>
             </div>
           )}
+          {moveError && (
+            <div className="pa-modal-error" style={{ marginTop: 14 }}>
+              <ErrorOutlineIcon fontSize="small" />
+              <span>{moveError}</span>
+            </div>
+          )}
           {takenError && (
             <div className="pa-modal-error" style={{ marginTop: 14 }}>
               <ErrorOutlineIcon fontSize="small" />
@@ -177,6 +209,8 @@ const PersonalArea = () => {
                   const isConfirming = confirmingDeleteId === product.id;
                   const isDeleting = deletingId === product.id;
                   const isExpanded = expandedProductId === product.id;
+                  const isConfirmingMove = confirmingMoveId === product.id;
+                  const isMoving = movingId === product.id;
                   const isConfirmingTaken = confirmingTakenId === product.id;
                   const isMarkingTaken = markingTakenId === product.id;
 
@@ -215,11 +249,24 @@ const PersonalArea = () => {
                         <InterestedUsersPanel productId={product.id} requesterUserId={currentUser.id} />
                       )}
 
+                      {product.status === 'WITH_DONOR' && (
+                        <div className="pa-status-action">
+                          <span>מוכן להעברה למרכז האיסוף?</span>
+                          <button
+                            type="button"
+                            className={`pa-action-btn ${isConfirmingMove ? 'pa-action-btn--confirm' : ''}`}
+                            onClick={() => handleMoveToCenterClick(product.id)}
+                            disabled={isMoving}
+                          >
+                            <LocalShippingOutlinedIcon fontSize="inherit" />
+                            {isMoving ? 'מעביר...' : isConfirmingMove ? 'לאשר?' : 'הבא למרכז'}
+                          </button>
+                        </div>
+                      )}
+
                       {product.status === 'AT_CENTER' && (
-                        <div className="pa-recipient-info">
-                          <span>
-                            נמסר למרכז עבור: <strong>{product.recipientUsername}</strong>
-                          </span>
+                        <div className="pa-status-action">
+                          <span>החפץ נמצא במרכז האיסוף וממתין לאיסוף</span>
                           <button
                             type="button"
                             className={`pa-action-btn ${isConfirmingTaken ? 'pa-action-btn--confirm' : ''}`}
@@ -232,12 +279,10 @@ const PersonalArea = () => {
                         </div>
                       )}
 
-                      {product.status === 'TAKEN' && product.recipientUsername && (
-                        <div className="pa-recipient-info pa-recipient-info--done">
+                      {product.status === 'TAKEN' && (
+                        <div className="pa-status-action pa-status-action--done">
                           <CheckCircleOutlineIcon fontSize="inherit" />
-                          <span>
-                            נמסר בהצלחה ל: <strong>{product.recipientUsername}</strong>
-                          </span>
+                          <span>נמסר בהצלחה</span>
                         </div>
                       )}
 

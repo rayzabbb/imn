@@ -99,17 +99,19 @@ export const deleteProduct = async (productId, requesterUserId) => {
   }
 };
 
-// Collection-center step 1: donor picks who gets the item (WITH_DONOR -> AT_CENTER)
-export const selectRecipient = async (productId, requesterUserId, recipientUserId) => {
+// Collection-center step 1: donor brings the item to the center
+// (WITH_DONOR -> AT_CENTER). Not reserved for anyone - any interested user
+// (or anyone at all) may come collect it there.
+export const moveProductToCenter = async (productId, requesterUserId) => {
   try {
     const response = await axios.put(
-      `http://localhost:8080/api/product/${productId}/selectRecipient`,
+      `http://localhost:8080/api/product/${productId}/moveToCenter`,
       null,
-      { params: { requesterUserId, recipientUserId } }
+      { params: { requesterUserId } }
     );
     return response.data;
   } catch (error) {
-    console.error('Error selecting recipient:', error);
+    console.error('Error moving product to center:', error);
     throw error;
   }
 };

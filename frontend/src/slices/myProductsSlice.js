@@ -3,7 +3,7 @@ import {
     getProductsByUser,
     updateProduct,
     deleteProduct,
-    selectRecipient,
+    moveProductToCenter,
     markProductTaken,
 } from '../services/categoryservice';
 
@@ -49,14 +49,15 @@ export const removeMyProduct = createAsyncThunk(
     }
 );
 
-// Collection-center step 1: pick who gets the item.
-export const selectMyProductRecipient = createAsyncThunk(
-    'myProducts/selectMyProductRecipient',
-    async ({ productId, requesterUserId, recipientUserId }, { rejectWithValue }) => {
+// Collection-center step 1: bring the item to the center. Not reserved for
+// anyone - any interested user (or anyone at all) may collect it there.
+export const moveMyProductToCenter = createAsyncThunk(
+    'myProducts/moveMyProductToCenter',
+    async ({ productId, requesterUserId }, { rejectWithValue }) => {
         try {
-            return await selectRecipient(productId, requesterUserId, recipientUserId);
+            return await moveProductToCenter(productId, requesterUserId);
         } catch (error) {
-            return rejectWithValue(extractErrorMessage(error, 'שגיאה בבחירת מקבל'));
+            return rejectWithValue(extractErrorMessage(error, 'שגיאה בהעברת המוצר למרכז'));
         }
     }
 );
@@ -121,16 +122,16 @@ const myProductsSlice = createSlice({
                 state.actionError = action.payload || action.error.message;
             })
 
-            .addCase(selectMyProductRecipient.pending, (state) => {
+            .addCase(moveMyProductToCenter.pending, (state) => {
                 state.actionError = null;
             })
-            .addCase(selectMyProductRecipient.fulfilled, (state, action) => {
+            .addCase(moveMyProductToCenter.fulfilled, (state, action) => {
                 const updated = action.payload;
                 state.items = state.items.map((item) =>
                     item.id === updated.id ? updated : item
                 );
             })
-            .addCase(selectMyProductRecipient.rejected, (state, action) => {
+            .addCase(moveMyProductToCenter.rejected, (state, action) => {
                 state.actionError = action.payload || action.error.message;
             })
 

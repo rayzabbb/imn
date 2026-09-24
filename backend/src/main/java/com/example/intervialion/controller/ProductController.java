@@ -94,21 +94,24 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
-    /** Collection-center step 1: the donor picks who gets the item. */
-    @PutMapping("/{id}/selectRecipient")
-    public ResponseEntity<Object> selectRecipient(
+    /**
+     * Collection-center step 1: the donor brings the item to the center.
+     * Not reserved for anyone - any interested user (or anyone at all) may
+     * come collect it there.
+     */
+    @PutMapping("/{id}/moveToCenter")
+    public ResponseEntity<Object> moveToCenter(
             @PathVariable Long id,
-            @RequestParam Long requesterUserId,
-            @RequestParam Long recipientUserId
+            @RequestParam Long requesterUserId
     ) {
-        ProductSummaryResponse updated = productService.selectRecipient(id, requesterUserId, recipientUserId);
+        ProductSummaryResponse updated = productService.moveToCenter(id, requesterUserId);
         if (updated == null) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(updated);
     }
 
-    /** Collection-center step 2: the donor confirms the handoff is done. */
+    /** Collection-center step 2: the donor confirms the item was collected. */
     @PutMapping("/{id}/markTaken")
     public ResponseEntity<Object> markTaken(
             @PathVariable Long id,

@@ -1,5 +1,6 @@
 package com.example.intervialion.service;
 
+import com.example.intervialion.dto.DonorContactResponse;
 import com.example.intervialion.dto.InterestStatusResponse;
 import com.example.intervialion.dto.InterestedUserResponse;
 import com.example.intervialion.exception.ForbiddenException;
@@ -122,6 +123,32 @@ public class InterestService {
                     );
                 })
                 .toList();
+    }
+
+    /**
+     * The donor's contact details for one product - the mirror image of
+     * getInterestedUsers. Only a user who has actually expressed interest in
+     * this product may see it (self-interest is blocked, so the owner can
+     * never satisfy this check for their own product). Returns null when the
+     * product doesn't exist.
+     */
+    public DonorContactResponse getDonorContact(Long productId, Long requesterUserId) {
+        Product product = productRepository.findById(productId).orElse(null);
+        if (product == null) {
+            return null;
+        }
+        if (requesterUserId == null || !interestRepository.existsByProductIdAndUserId(productId, requesterUserId)) {
+            throw new ForbiddenException("You must express interest before viewing the donor's contact details");
+        }
+
+        User donor = product.getUser();
+        return new DonorContactResponse(
+                donor.getUsername(),
+                donor.getEmail(),
+                donor.getPhone(),
+                donor.getCity(),
+                donor.getTimeToContac()
+        );
     }
 
     private InterestStatusResponse buildStatus(Product product, Long userId) {

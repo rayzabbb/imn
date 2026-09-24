@@ -5,9 +5,12 @@ import com.example.intervialion.model.ProductStatus;
 /**
  * A donor's own product, shaped for the Personal Area: includes the
  * category/subCategory ids (needed to prefill the edit form - Product's own
- * JSON omits them via @JsonBackReference), the real interestedCount, and -
- * once the donor has picked someone (status AT_CENTER/TAKEN) - who the
- * recipient is. recipientUserId/recipientUsername are null until then.
+ * JSON omits them via @JsonBackReference) and the real interestedCount.
+ * <p>
+ * There is no reserved recipient: the donor only decides to move an item
+ * WITH_DONOR -> AT_CENTER; any interested user may collect it there, and the
+ * donor marks it TAKEN once it's gone. Interest never reserves an item for a
+ * specific person.
  */
 public record ProductSummaryResponse(
         long id,
@@ -19,8 +22,6 @@ public record ProductSummaryResponse(
         Long categoryId,
         String categoryName,
         Long subCategoryId,
-        String subCategoryName,
-        Long recipientUserId,
-        String recipientUsername
+        String subCategoryName
 ) {
 }

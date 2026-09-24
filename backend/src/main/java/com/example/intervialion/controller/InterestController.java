@@ -1,5 +1,6 @@
 package com.example.intervialion.controller;
 
+import com.example.intervialion.dto.DonorContactResponse;
 import com.example.intervialion.dto.InterestStatusResponse;
 import com.example.intervialion.dto.InterestedUserResponse;
 import com.example.intervialion.service.InterestService;
@@ -76,5 +77,19 @@ public class InterestController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(users);
+    }
+
+    /** The donor's contact details, visible only to a user who has expressed interest. */
+    @GetMapping("/product/{productId}/donor-contact")
+    public ResponseEntity<DonorContactResponse> getDonorContact(
+            @PathVariable Long productId,
+            @RequestParam Long requesterUserId
+    ) {
+        // Requesters who never expressed interest surface as ForbiddenException -> 403.
+        DonorContactResponse contact = interestService.getDonorContact(productId, requesterUserId);
+        if (contact == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(contact);
     }
 }

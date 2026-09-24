@@ -103,8 +103,6 @@ public class ProductService {
         String categoryName = subCategory != null && subCategory.getCategory() != null
                 ? subCategory.getCategory().getName() : null;
 
-        User recipient = product.getRecipient();
-
         return new ProductSummaryResponse(
                 product.getId(),
                 product.getName(),
@@ -115,9 +113,7 @@ public class ProductService {
                 categoryId,
                 categoryName,
                 subCategoryId,
-                subCategoryName,
-                recipient != null ? recipient.getId() : null,
-                recipient != null ? recipient.getUsername() : null
+                subCategoryName
         );
     }
 
@@ -183,31 +179,24 @@ public class ProductService {
     }
 
     /**
-     * First step of the collection-center workflow: the donor picks one of
-     * the users who expressed interest. Moves WITH_DONOR -> AT_CENTER.
-     * Only the owning donor may do this, only from WITH_DONOR, and only for
-     * a user who actually has an open interest in this product. Returns null
-     * when the product doesn't exist (404 territory).
+     * First step of the collection-center workflow: the donor brings the
+     * item to the center. Moves WITH_DONOR -> AT_CENTER. The item isn't
+     * reserved for anyone - any user who expressed interest (or anyone at
+     * all) may collect it there. Only the owning donor may do this, only
+     * from WITH_DONOR. Returns null when the product doesn't exist (404
+     * territory).
      */
-    public ProductSummaryResponse selectRecipient(Long id, Long requesterUserId, Long recipientUserId) {
+    public ProductSummaryResponse moveToCenter(Long id, Long requesterUserId) {
         Product product = productRepository.findById(id).orElse(null);
         if (product == null) {
             return null;
         }
-        requireOwnership(product, requesterUserId, "You can only select a recipient for your own products");
+        requireOwnership(product, requesterUserId, "You can only move your own products to the center");
 
         if (product.getStatus() != ProductStatus.WITH_DONOR) {
-            throw new InvalidRequestException("This product is not awaiting a recipient");
-        }
-        if (recipientUserId == null || !interestRepository.existsByProductIdAndUserId(id, recipientUserId)) {
-            throw new InvalidRequestException("Invalid recipientUserId");
-        }
-        User recipient = userRepository.findById(recipientUserId).orElse(null);
-        if (recipient == null) {
-            throw new InvalidRequestException("Invalid recipientUserId");
+            throw new InvalidRequestException("This product is not with its donor");
         }
 
-        product.setRecipient(recipient);
         product.setStatus(ProductStatus.AT_CENTER);
 
         Product saved = productRepository.save(product);
@@ -215,10 +204,10 @@ public class ProductService {
     }
 
     /**
-     * Second step: the donor confirms the handoff is complete. Moves
-     * AT_CENTER -> TAKEN. Only the owning donor may do this, only once a
-     * recipient has actually been selected. Returns null when the product
-     * doesn't exist (404 territory).
+     * Second step: the donor confirms the item has been collected. Moves
+     * AT_CENTER -> TAKEN. Only the owning donor may do this, only once the
+     * item is actually at the center. Returns null when the product doesn't
+     * exist (404 territory).
      */
     public ProductSummaryResponse markTaken(Long id, Long requesterUserId) {
         Product product = productRepository.findById(id).orElse(null);

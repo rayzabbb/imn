@@ -235,32 +235,56 @@
   font-size: 18px;
 }
 
-.pd-cta-btn {
-  display: inline-flex;
+/* Donor contact card - shown once the viewer has expressed interest */
+.pd-donor-contact {
+  width: 100%;
+  margin-top: 6px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background-color: var(--pd-accent-soft);
+  border: 1px solid rgba(255, 106, 61, 0.25);
+}
+
+.pd-donor-contact h2 {
+  margin: 0 0 10px;
+  display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 6px;
-  padding: 13px 28px;
-  border: none;
-  border-radius: 999px;
-  background-color: var(--pd-accent);
-  color: #fff;
-  font-family: inherit;
   font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(255, 106, 61, 0.28);
-  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  font-weight: 700;
+  color: var(--pd-text);
 }
 
-.pd-cta-btn:hover {
-  background-color: var(--pd-accent-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(255, 106, 61, 0.34);
+.pd-donor-contact h2 svg {
+  color: var(--pd-accent);
 }
 
-.pd-cta-btn:active {
-  transform: translateY(0);
+.pd-donor-contact-loading {
+  margin: 0;
+  font-size: 13px;
+  color: var(--pd-text-muted);
+}
+
+.pd-donor-contact-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pd-donor-contact-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--pd-text);
+}
+
+.pd-donor-contact-list svg {
+  color: var(--pd-accent);
+  flex-shrink: 0;
 }
 
 .pd-details-section {

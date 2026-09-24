@@ -33,3 +33,12 @@ export const getInterestedUsers = async (productId, requesterUserId) => {
   });
   return response.data || [];
 };
+
+// The donor's contact details, visible only once the requester has
+// expressed interest in this product (backend returns 403 otherwise).
+export const getDonorContact = async (productId, requesterUserId) => {
+  const response = await axios.get(`${BASE}/product/${productId}/donor-contact`, {
+    params: { requesterUserId },
+  });
+  return response.data;
+};
