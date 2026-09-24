@@ -15,12 +15,14 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import {
   fetchMyProducts,
   removeMyProduct,
   moveMyProductToCenter,
   markMyProductTaken,
 } from '../../slices/myProductsSlice';
+import { fetchMyInterests } from '../../slices/myInterestsSlice';
 import EditProductModal from './EditProductModal';
 import InterestedUsersPanel from './InterestedUsersPanel';
 import './PersonalArea.css';
@@ -35,6 +37,11 @@ const PersonalArea = () => {
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.user);
   const { items, loading, error } = useSelector((state) => state.myProducts);
+  const {
+    items: myInterests,
+    loading: interestsLoading,
+    error: interestsError,
+  } = useSelector((state) => state.myInterests);
 
   const [editingProduct, setEditingProduct] = useState(null);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState(null);
@@ -54,9 +61,21 @@ const PersonalArea = () => {
     }
   }, [dispatch, currentUser?.id]);
 
+  useEffect(() => {
+    if (currentUser?.id) {
+      dispatch(fetchMyInterests(currentUser.id));
+    }
+  }, [dispatch, currentUser?.id]);
+
   const handleRetry = () => {
     if (currentUser?.id) {
       dispatch(fetchMyProducts(currentUser.id));
+    }
+  };
+
+  const handleRetryInterests = () => {
+    if (currentUser?.id) {
+      dispatch(fetchMyInterests(currentUser.id));
     }
   };
 
@@ -306,6 +325,76 @@ const PersonalArea = () => {
                         </button>
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ marginTop: 32 }}>
+          <div className="pa-section-header">
+            <h2>מוצרים שמעניינים אותי</h2>
+          </div>
+
+          <div style={{ marginTop: 16 }}>
+            {interestsLoading && (
+              <div className="pa-state">
+                <div className="pa-spinner" />
+                <p>טוען את המוצרים שמעניינים אותך...</p>
+              </div>
+            )}
+
+            {!interestsLoading && interestsError && (
+              <div className="pa-state pa-state--error">
+                <ErrorOutlineIcon />
+                <p>{interestsError}</p>
+                <button type="button" className="pa-retry-btn" onClick={handleRetryInterests}>
+                  נסו שוב
+                </button>
+              </div>
+            )}
+
+            {!interestsLoading && !interestsError && myInterests.length === 0 && (
+              <div className="pa-state">
+                <FavoriteBorderIcon />
+                <p>עדיין לא הבעתם עניין באף חפץ.</p>
+                <Link to="/category" className="pa-retry-btn" style={{ textDecoration: 'none' }}>
+                  עיינו בקטגוריות
+                </Link>
+              </div>
+            )}
+
+            {!interestsLoading && !interestsError && myInterests.length > 0 && (
+              <div className="pa-products-grid">
+                {myInterests.map((item) => {
+                  const statusMeta = STATUS_META[item.status] || {
+                    label: item.status,
+                    className: 'pa-status-badge--with-donor',
+                  };
+
+                  return (
+                    <Link
+                      key={item.productId}
+                      to={`/product/${item.productId}`}
+                      className="pa-product-card pa-product-card--link"
+                    >
+                      <h3>{item.name}</h3>
+                      <div className="pa-product-meta">
+                        {item.manufacturerNameOrBrand && <span>יצרן/מותג: {item.manufacturerNameOrBrand}</span>}
+                        <span>מצב: {item.quality}</span>
+                      </div>
+
+                      <div className="pa-product-badges">
+                        <span className={`pa-status-badge ${statusMeta.className}`}>{statusMeta.label}</span>
+                      </div>
+
+                      {item.expressedAt && (
+                        <span className="pa-interest-expressed-at">
+                          הבעתם עניין ב-{new Date(item.expressedAt).toLocaleDateString('he-IL')}
+                        </span>
+                      )}
+                    </Link>
                   );
                 })}
               </div>

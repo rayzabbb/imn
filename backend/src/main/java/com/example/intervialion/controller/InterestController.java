@@ -3,6 +3,7 @@ package com.example.intervialion.controller;
 import com.example.intervialion.dto.DonorContactResponse;
 import com.example.intervialion.dto.InterestStatusResponse;
 import com.example.intervialion.dto.InterestedUserResponse;
+import com.example.intervialion.dto.MyInterestResponse;
 import com.example.intervialion.service.InterestService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -91,5 +92,15 @@ public class InterestController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(contact);
+    }
+
+    /** Every product this user has expressed interest in, for their Personal Area. */
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<MyInterestResponse>> getMyInterests(@PathVariable Long userId) {
+        List<MyInterestResponse> interests = interestService.getMyInterests(userId);
+        if (interests.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(interests);
     }
 }

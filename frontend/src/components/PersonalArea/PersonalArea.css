@@ -196,6 +196,23 @@
   font-weight: 700;
 }
 
+.pa-product-card--link {
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.pa-product-card--link:hover {
+  border-color: var(--pa-accent);
+  box-shadow: 0 6px 20px rgba(255, 106, 61, 0.12);
+  transform: translateY(-1px);
+}
+
+.pa-interest-expressed-at {
+  font-size: 12px;
+  color: var(--pa-text-muted);
+}
+
 .pa-product-meta {
   display: flex;
   flex-direction: column;

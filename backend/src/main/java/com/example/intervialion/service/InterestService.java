@@ -3,6 +3,7 @@ package com.example.intervialion.service;
 import com.example.intervialion.dto.DonorContactResponse;
 import com.example.intervialion.dto.InterestStatusResponse;
 import com.example.intervialion.dto.InterestedUserResponse;
+import com.example.intervialion.dto.MyInterestResponse;
 import com.example.intervialion.exception.ForbiddenException;
 import com.example.intervialion.exception.InvalidRequestException;
 import com.example.intervialion.model.Interest;
@@ -149,6 +150,29 @@ public class InterestService {
                 donor.getCity(),
                 donor.getTimeToContac()
         );
+    }
+
+    /**
+     * Every product this user has expressed interest in, most recent first,
+     * with each product's real current status - for the Personal Area
+     * "מוצרים שמעניינים אותי" section. Straight read of this user's own
+     * interests, same no-extra-ownership-check pattern as
+     * ProductService.getProductsByUser.
+     */
+    public List<MyInterestResponse> getMyInterests(Long userId) {
+        return interestRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(interest -> {
+                    Product product = interest.getProduct();
+                    return new MyInterestResponse(
+                            product.getId(),
+                            product.getName(),
+                            product.getManufacturerNameOrBrand(),
+                            product.getQuality(),
+                            product.getStatus(),
+                            interest.getCreatedAt()
+                    );
+                })
+                .toList();
     }
 
     private InterestStatusResponse buildStatus(Product product, Long userId) {

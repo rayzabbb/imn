@@ -19,4 +19,6 @@ public interface InterestRepository extends JpaRepository<Interest, Long> {
     void deleteByUserId(Long userId);
 
     List<Interest> findByProductIdOrderByCreatedAtAsc(Long productId);
+
+    List<Interest> findByUserIdOrderByCreatedAtDesc(Long userId);
 }

@@ -42,3 +42,11 @@ export const getDonorContact = async (productId, requesterUserId) => {
   });
   return response.data;
 };
+
+// Every product this user has expressed interest in, with each product's
+// real current status - for the Personal Area "מוצרים שמעניינים אותי" section.
+// The backend returns 204 (empty body) when the user has no interests yet.
+export const getMyInterests = async (userId) => {
+  const response = await axios.get(`${BASE}/user/${userId}`);
+  return response.data || [];
+};
