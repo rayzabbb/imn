@@ -163,6 +163,39 @@ body {
     display: none;
   }
 
+  .navbar-user--logged-in {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .navbar-user-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navbar-text);
+    text-decoration: none;
+    white-space: nowrap;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 8px;
+    padding: 6px 8px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .navbar-user-name:hover {
+    background-color: var(--navbar-accent-soft);
+    color: var(--navbar-accent);
+  }
+
+  .navbar-user-name svg {
+    color: var(--navbar-accent);
+    flex-shrink: 0;
+  }
+
   .publish-btn {
     display: inline-flex;
     align-items: center;

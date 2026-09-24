@@ -1,9 +1,13 @@
 package com.example.intervialion.service;
 
 import com.example.intervialion.exception.InvalidRequestException;
+import com.example.intervialion.model.Product;
 import com.example.intervialion.model.User;
+import com.example.intervialion.repository.InterestRepository;
+import com.example.intervialion.repository.ProductRepository;
 import com.example.intervialion.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -11,9 +15,15 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final InterestRepository interestRepository;
+    private final ProductRepository productRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository,
+                        InterestRepository interestRepository,
+                        ProductRepository productRepository) {
         this.userRepository = userRepository;
+        this.interestRepository = interestRepository;
+        this.productRepository = productRepository;
     }
 
     public List<User> getAllUsers() {
@@ -28,7 +38,27 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    /**
+     * Deletes a user. Three FK relations point at User with no cascade of
+     * their own and are cleared first:
+     * - interests this user expressed on others' products,
+     * - other products that selected this user as their recipient,
+     * - interests on products THIS user owns: User.products already cascades
+     *   (CascadeType.ALL) to delete those products, but that Hibernate-level
+     *   cascade happens outside ProductService.deleteProduct, so it would hit
+     *   the same interests FK that method guards against - it has to be
+     *   handled here too.
+     */
+    @Transactional
     public void delete(User user) {
+        interestRepository.deleteByUserId(user.getId());
+        for (Product recipientOf : productRepository.findByRecipientId(user.getId())) {
+            recipientOf.setRecipient(null);
+            productRepository.save(recipientOf);
+        }
+        for (Product owned : productRepository.findByUserId(user.getId())) {
+            interestRepository.deleteByProductId(owned.getId());
+        }
         userRepository.delete(user);
     }
 
@@ -37,30 +67,25 @@ public class UserService {
     }
 
     /**
-     * Rejects a duplicate username, otherwise persists the new user.
-     * Scans all users exactly as the controller did before the refactor.
+     * Rejects a duplicate username, otherwise persists the new user and
+     * returns it (so the caller gets the generated id back).
      */
-    public void registerUser(User user) {
-        List<User> users = userRepository.findAll();
-        for (User existingUser : users) {
-            if (existingUser.getUsername().equals(user.getUsername())) {
-                throw new InvalidRequestException("Username already exists");
-            }
+    public User registerUser(User user) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new InvalidRequestException("Username already exists");
         }
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
     /**
-     * Returns the user with this username, or null when none matches.
-     * Linear scan, preserved from the original controller implementation.
+     * Verifies credentials and returns the matching user, or null when the
+     * username is unknown or the password doesn't match.
      */
-    public User findByUsername(String username) {
-        List<User> users = userRepository.findAll();
-        for (User user : users) {
-            if (user.getUsername().equals(username)) {
-                return user;
-            }
+    public User login(String username, String password) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null || user.getPassword() == null || !user.getPassword().equals(password)) {
+            return null;
         }
-        return null;
+        return user;
     }
 }

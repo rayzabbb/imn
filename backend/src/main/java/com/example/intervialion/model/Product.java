@@ -12,6 +12,12 @@ public class Product {
     private String ManufacturerNameOrBrand;
     private String quality;
 
+    // Lifecycle of the donation: WITH_DONOR (default, just published) ->
+    // AT_CENTER -> TAKEN. Stored as STRING so future statuses can be added
+    // without an ordinal-based data migration.
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status = ProductStatus.WITH_DONOR;
+
     @ManyToOne
     @JoinColumn(name = "sub_category_id", nullable = false)
     @JsonBackReference("subCategory-products") // מונע חזרה אינסופית מתת הקטגוריה
@@ -21,6 +27,16 @@ public class Product {
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference("user-products") // מונע חזרה אינסופית מהמשתמש
     private User user;
+
+    // Set once the donor picks one of the interested users to hand the item
+    // to (moves status to AT_CENTER). Never serialized directly - exposed
+    // through ProductSummaryResponse as recipientUserId/recipientUsername
+    // instead, same reason `user` is hidden above.
+    @ManyToOne
+    @JoinColumn(name = "recipient_user_id")
+    @JsonIgnore
+    private User recipient;
+
     public Product() {}
 
     public Product(long id, String name, String manufacturerNameOrBrand, String quality, SubCategory subCategory, User user) {
@@ -41,9 +57,15 @@ public class Product {
     public String getQuality() { return quality; }
     public void setQuality(String quality) { this.quality = quality; }
 
+    public ProductStatus getStatus() { return status; }
+    public void setStatus(ProductStatus status) { this.status = status; }
+
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
 
     public SubCategory getSubCategory() { return subCategory; }
     public void setSubCategory(SubCategory subCategory) { this.subCategory = subCategory; }
+
+    public User getRecipient() { return recipient; }
+    public void setRecipient(User recipient) { this.recipient = recipient; }
 }

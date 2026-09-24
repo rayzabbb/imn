@@ -1,5 +1,6 @@
 package com.example.intervialion.controller;
 
+import com.example.intervialion.dto.LoginRequest;
 import com.example.intervialion.model.User;
 import com.example.intervialion.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -67,16 +68,16 @@ public class UserController {
     }
 
     @PostMapping("/RegisterUser")
-    public ResponseEntity<String> registerUser(@RequestBody User user) {
+    public ResponseEntity<User> registerUser(@RequestBody User user) {
         // Duplicate-username failures surface as InvalidRequestException and are
         // turned into the same 400 + message response by GlobalExceptionHandler.
-        userService.registerUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
+        User saved = userService.registerUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PostMapping("/Login")
-    public ResponseEntity<User> loginUser(@RequestParam String username) {
-        User user = userService.findByUsername(username);
+    public ResponseEntity<User> loginUser(@RequestBody LoginRequest request) {
+        User user = userService.login(request.username(), request.password());
         if (user != null) {
             return ResponseEntity.ok(user);
         }
