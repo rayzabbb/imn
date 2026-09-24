@@ -24,3 +24,12 @@ export const cancelInterest = async (productId, userId) => {
   });
   return response.data;
 };
+
+// The donor's view of who is interested, with contact details.
+// The backend returns 204 (empty body) when nobody has expressed interest.
+export const getInterestedUsers = async (productId, requesterUserId) => {
+  const response = await axios.get(`${BASE}/product/${productId}/interested`, {
+    params: { requesterUserId },
+  });
+  return response.data || [];
+};

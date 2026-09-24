@@ -1,14 +1,19 @@
 package com.example.intervialion.service;
 
 import com.example.intervialion.dto.InterestStatusResponse;
+import com.example.intervialion.dto.InterestedUserResponse;
+import com.example.intervialion.exception.ForbiddenException;
 import com.example.intervialion.exception.InvalidRequestException;
 import com.example.intervialion.model.Interest;
 import com.example.intervialion.model.Product;
+import com.example.intervialion.model.ProductStatus;
 import com.example.intervialion.model.User;
 import com.example.intervialion.repository.InterestRepository;
 import com.example.intervialion.repository.ProductRepository;
 import com.example.intervialion.repository.UserRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class InterestService {
@@ -44,6 +49,10 @@ public class InterestService {
 
         if (isOwner(product, userId)) {
             throw new InvalidRequestException("You cannot express interest in your own product");
+        }
+
+        if (product.getStatus() != ProductStatus.WITH_DONOR) {
+            throw new InvalidRequestException("This product is no longer available");
         }
 
         if (interestRepository.existsByProductIdAndUserId(productId, userId)) {
@@ -82,6 +91,37 @@ public class InterestService {
             return null;
         }
         return buildStatus(product, userId);
+    }
+
+    /**
+     * The full list of interested users for one product, with contact
+     * details so the donor can arrange a handoff. Only the product's own
+     * donor may see this - it's never exposed publicly. Returns null when
+     * the product doesn't exist.
+     */
+    public List<InterestedUserResponse> getInterestedUsers(Long productId, Long requesterUserId) {
+        Product product = productRepository.findById(productId).orElse(null);
+        if (product == null) {
+            return null;
+        }
+        if (!isOwner(product, requesterUserId)) {
+            throw new ForbiddenException("Only the donor can view interested users");
+        }
+
+        return interestRepository.findByProductIdOrderByCreatedAtAsc(productId).stream()
+                .map(interest -> {
+                    User user = interest.getUser();
+                    return new InterestedUserResponse(
+                            user.getId(),
+                            user.getUsername(),
+                            user.getEmail(),
+                            user.getPhone(),
+                            user.getCity(),
+                            user.getTimeToContac(),
+                            interest.getCreatedAt()
+                    );
+                })
+                .toList();
     }
 
     private InterestStatusResponse buildStatus(Product product, Long userId) {

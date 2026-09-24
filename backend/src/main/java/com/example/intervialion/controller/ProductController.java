@@ -93,4 +93,31 @@ public class ProductController {
         }
         return ResponseEntity.noContent().build();
     }
+
+    /** Collection-center step 1: the donor picks who gets the item. */
+    @PutMapping("/{id}/selectRecipient")
+    public ResponseEntity<Object> selectRecipient(
+            @PathVariable Long id,
+            @RequestParam Long requesterUserId,
+            @RequestParam Long recipientUserId
+    ) {
+        ProductSummaryResponse updated = productService.selectRecipient(id, requesterUserId, recipientUserId);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
+
+    /** Collection-center step 2: the donor confirms the handoff is done. */
+    @PutMapping("/{id}/markTaken")
+    public ResponseEntity<Object> markTaken(
+            @PathVariable Long id,
+            @RequestParam Long requesterUserId
+    ) {
+        ProductSummaryResponse updated = productService.markTaken(id, requesterUserId);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
 }

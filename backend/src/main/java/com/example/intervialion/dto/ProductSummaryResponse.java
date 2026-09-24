@@ -5,10 +5,9 @@ import com.example.intervialion.model.ProductStatus;
 /**
  * A donor's own product, shaped for the Personal Area: includes the
  * category/subCategory ids (needed to prefill the edit form - Product's own
- * JSON omits them via @JsonBackReference) and an interestedCount seam for
- * the future interest workflow. Today interestedCount is always 0; once an
- * Interest entity exists, ProductService.countInterestedUsers is the only
- * place that needs to change.
+ * JSON omits them via @JsonBackReference), the real interestedCount, and -
+ * once the donor has picked someone (status AT_CENTER/TAKEN) - who the
+ * recipient is. recipientUserId/recipientUsername are null until then.
  */
 public record ProductSummaryResponse(
         long id,
@@ -20,6 +19,8 @@ public record ProductSummaryResponse(
         Long categoryId,
         String categoryName,
         Long subCategoryId,
-        String subCategoryName
+        String subCategoryName,
+        Long recipientUserId,
+        String recipientUsername
 ) {
 }

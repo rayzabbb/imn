@@ -11,8 +11,12 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import AddIcon from '@mui/icons-material/Add';
-import { fetchMyProducts, removeMyProduct } from '../../slices/myProductsSlice';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { fetchMyProducts, removeMyProduct, markMyProductTaken } from '../../slices/myProductsSlice';
 import EditProductModal from './EditProductModal';
+import InterestedUsersPanel from './InterestedUsersPanel';
 import './PersonalArea.css';
 
 const STATUS_META = {
@@ -30,6 +34,10 @@ const PersonalArea = () => {
   const [confirmingDeleteId, setConfirmingDeleteId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
+  const [expandedProductId, setExpandedProductId] = useState(null);
+  const [confirmingTakenId, setConfirmingTakenId] = useState(null);
+  const [markingTakenId, setMarkingTakenId] = useState(null);
+  const [takenError, setTakenError] = useState(null);
 
   useEffect(() => {
     if (currentUser?.id) {
@@ -57,6 +65,27 @@ const PersonalArea = () => {
       .finally(() => {
         setDeletingId(null);
         setConfirmingDeleteId(null);
+      });
+  };
+
+  const toggleInterestedPanel = (productId) => {
+    setExpandedProductId((current) => (current === productId ? null : productId));
+  };
+
+  const handleMarkTakenClick = (productId) => {
+    if (confirmingTakenId !== productId) {
+      setConfirmingTakenId(productId);
+      return;
+    }
+
+    setMarkingTakenId(productId);
+    setTakenError(null);
+    dispatch(markMyProductTaken({ productId, requesterUserId: currentUser.id }))
+      .unwrap()
+      .catch((err) => setTakenError(typeof err === 'string' ? err : 'שגיאה בסימון כניתן'))
+      .finally(() => {
+        setMarkingTakenId(null);
+        setConfirmingTakenId(null);
       });
   };
 
@@ -103,6 +132,12 @@ const PersonalArea = () => {
               <span>{deleteError}</span>
             </div>
           )}
+          {takenError && (
+            <div className="pa-modal-error" style={{ marginTop: 14 }}>
+              <ErrorOutlineIcon fontSize="small" />
+              <span>{takenError}</span>
+            </div>
+          )}
 
           <div style={{ marginTop: 16 }}>
             {loading && (
@@ -141,6 +176,9 @@ const PersonalArea = () => {
                   };
                   const isConfirming = confirmingDeleteId === product.id;
                   const isDeleting = deletingId === product.id;
+                  const isExpanded = expandedProductId === product.id;
+                  const isConfirmingTaken = confirmingTakenId === product.id;
+                  const isMarkingTaken = markingTakenId === product.id;
 
                   return (
                     <div key={product.id} className="pa-product-card">
@@ -152,11 +190,56 @@ const PersonalArea = () => {
 
                       <div className="pa-product-badges">
                         <span className={`pa-status-badge ${statusMeta.className}`}>{statusMeta.label}</span>
-                        <span className="pa-interest-badge">
-                          <GroupsOutlinedIcon fontSize="inherit" />
-                          {product.interestedCount} מתעניינים
-                        </span>
+                        {product.status === 'WITH_DONOR' && (
+                          <button
+                            type="button"
+                            className="pa-interest-badge pa-interest-badge--clickable"
+                            onClick={() => toggleInterestedPanel(product.id)}
+                            disabled={product.interestedCount === 0}
+                          >
+                            <GroupsOutlinedIcon fontSize="inherit" />
+                            {product.interestedCount} מתעניינים
+                            {product.interestedCount > 0 &&
+                              (isExpanded ? <ExpandLessIcon fontSize="inherit" /> : <ExpandMoreIcon fontSize="inherit" />)}
+                          </button>
+                        )}
+                        {product.status !== 'WITH_DONOR' && (
+                          <span className="pa-interest-badge">
+                            <GroupsOutlinedIcon fontSize="inherit" />
+                            {product.interestedCount} מתעניינים
+                          </span>
+                        )}
                       </div>
+
+                      {product.status === 'WITH_DONOR' && isExpanded && (
+                        <InterestedUsersPanel productId={product.id} requesterUserId={currentUser.id} />
+                      )}
+
+                      {product.status === 'AT_CENTER' && (
+                        <div className="pa-recipient-info">
+                          <span>
+                            נמסר למרכז עבור: <strong>{product.recipientUsername}</strong>
+                          </span>
+                          <button
+                            type="button"
+                            className={`pa-action-btn ${isConfirmingTaken ? 'pa-action-btn--confirm' : ''}`}
+                            onClick={() => handleMarkTakenClick(product.id)}
+                            disabled={isMarkingTaken}
+                          >
+                            <CheckCircleOutlineIcon fontSize="inherit" />
+                            {isMarkingTaken ? 'מסמן...' : isConfirmingTaken ? 'לאשר?' : 'סמן כניתן'}
+                          </button>
+                        </div>
+                      )}
+
+                      {product.status === 'TAKEN' && product.recipientUsername && (
+                        <div className="pa-recipient-info pa-recipient-info--done">
+                          <CheckCircleOutlineIcon fontSize="inherit" />
+                          <span>
+                            נמסר בהצלחה ל: <strong>{product.recipientUsername}</strong>
+                          </span>
+                        </div>
+                      )}
 
                       <div className="pa-product-actions">
                         <button

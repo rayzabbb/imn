@@ -27,6 +27,16 @@ public class Product {
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference("user-products") // מונע חזרה אינסופית מהמשתמש
     private User user;
+
+    // Set once the donor picks one of the interested users to hand the item
+    // to (moves status to AT_CENTER). Never serialized directly - exposed
+    // through ProductSummaryResponse as recipientUserId/recipientUsername
+    // instead, same reason `user` is hidden above.
+    @ManyToOne
+    @JoinColumn(name = "recipient_user_id")
+    @JsonIgnore
+    private User recipient;
+
     public Product() {}
 
     public Product(long id, String name, String manufacturerNameOrBrand, String quality, SubCategory subCategory, User user) {
@@ -55,4 +65,7 @@ public class Product {
 
     public SubCategory getSubCategory() { return subCategory; }
     public void setSubCategory(SubCategory subCategory) { this.subCategory = subCategory; }
+
+    public User getRecipient() { return recipient; }
+    public void setRecipient(User recipient) { this.recipient = recipient; }
 }

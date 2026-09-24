@@ -1,10 +1,13 @@
 package com.example.intervialion.controller;
 
 import com.example.intervialion.dto.InterestStatusResponse;
+import com.example.intervialion.dto.InterestedUserResponse;
 import com.example.intervialion.service.InterestService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("api/interest")
@@ -56,5 +59,22 @@ public class InterestController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(status);
+    }
+
+    /** The donor's view of who is interested, with contact details. */
+    @GetMapping("/product/{productId}/interested")
+    public ResponseEntity<List<InterestedUserResponse>> getInterestedUsers(
+            @PathVariable Long productId,
+            @RequestParam Long requesterUserId
+    ) {
+        // Non-donor requesters surface as ForbiddenException -> 403 via GlobalExceptionHandler.
+        List<InterestedUserResponse> users = interestService.getInterestedUsers(productId, requesterUserId);
+        if (users == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (users.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(users);
     }
 }

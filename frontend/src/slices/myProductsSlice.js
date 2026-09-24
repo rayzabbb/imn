@@ -1,5 +1,11 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getProductsByUser, updateProduct, deleteProduct } from '../services/categoryservice';
+import {
+    getProductsByUser,
+    updateProduct,
+    deleteProduct,
+    selectRecipient,
+    markProductTaken,
+} from '../services/categoryservice';
 
 const extractErrorMessage = (error, fallback) => {
     if (typeof error?.response?.data === 'string' && error.response.data) {
@@ -39,6 +45,30 @@ export const removeMyProduct = createAsyncThunk(
             return productId;
         } catch (error) {
             return rejectWithValue(extractErrorMessage(error, 'שגיאה במחיקת המוצר'));
+        }
+    }
+);
+
+// Collection-center step 1: pick who gets the item.
+export const selectMyProductRecipient = createAsyncThunk(
+    'myProducts/selectMyProductRecipient',
+    async ({ productId, requesterUserId, recipientUserId }, { rejectWithValue }) => {
+        try {
+            return await selectRecipient(productId, requesterUserId, recipientUserId);
+        } catch (error) {
+            return rejectWithValue(extractErrorMessage(error, 'שגיאה בבחירת מקבל'));
+        }
+    }
+);
+
+// Collection-center step 2: confirm the handoff is complete.
+export const markMyProductTaken = createAsyncThunk(
+    'myProducts/markMyProductTaken',
+    async ({ productId, requesterUserId }, { rejectWithValue }) => {
+        try {
+            return await markProductTaken(productId, requesterUserId);
+        } catch (error) {
+            return rejectWithValue(extractErrorMessage(error, 'שגיאה בסימון כניתן'));
         }
     }
 );
@@ -88,6 +118,32 @@ const myProductsSlice = createSlice({
                 state.items = state.items.filter((item) => item.id !== action.payload);
             })
             .addCase(removeMyProduct.rejected, (state, action) => {
+                state.actionError = action.payload || action.error.message;
+            })
+
+            .addCase(selectMyProductRecipient.pending, (state) => {
+                state.actionError = null;
+            })
+            .addCase(selectMyProductRecipient.fulfilled, (state, action) => {
+                const updated = action.payload;
+                state.items = state.items.map((item) =>
+                    item.id === updated.id ? updated : item
+                );
+            })
+            .addCase(selectMyProductRecipient.rejected, (state, action) => {
+                state.actionError = action.payload || action.error.message;
+            })
+
+            .addCase(markMyProductTaken.pending, (state) => {
+                state.actionError = null;
+            })
+            .addCase(markMyProductTaken.fulfilled, (state, action) => {
+                const updated = action.payload;
+                state.items = state.items.map((item) =>
+                    item.id === updated.id ? updated : item
+                );
+            })
+            .addCase(markMyProductTaken.rejected, (state, action) => {
                 state.actionError = action.payload || action.error.message;
             });
     },

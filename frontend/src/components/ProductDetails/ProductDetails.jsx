@@ -8,6 +8,8 @@ import ImageNotSupportedOutlinedIcon from '@mui/icons-material/ImageNotSupported
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import TagOutlinedIcon from '@mui/icons-material/TagOutlined';
 import { fetchProductById, fetchCategories } from '../../slices/categorySlice';
@@ -163,9 +165,20 @@ const ProductDetails = () => {
           <div className="pd-body">
             <div className="pd-title-row">
               <h1 className="pd-name">{product.name}</h1>
-              {interest.owner ? (
-                <span className="pd-owner-badge">זה החפץ שלך</span>
-              ) : (
+              {interest.owner && <span className="pd-owner-badge">זה החפץ שלך</span>}
+              {!interest.owner && product.status === 'AT_CENTER' && (
+                <span className="pd-status-info-badge pd-status-info-badge--at-center">
+                  <WarehouseOutlinedIcon fontSize="small" />
+                  המוצר נמצא במרכז האיסוף
+                </span>
+              )}
+              {!interest.owner && product.status === 'TAKEN' && (
+                <span className="pd-status-info-badge pd-status-info-badge--taken">
+                  <CheckCircleOutlineIcon fontSize="small" />
+                  המוצר כבר נמסר
+                </span>
+              )}
+              {!interest.owner && product.status === 'WITH_DONOR' && (
                 <button
                   type="button"
                   className={`pd-interest-btn ${interest.interested ? 'pd-interest-btn--active' : ''}`}

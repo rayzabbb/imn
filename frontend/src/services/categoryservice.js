@@ -98,3 +98,33 @@ export const deleteProduct = async (productId, requesterUserId) => {
     throw error;
   }
 };
+
+// Collection-center step 1: donor picks who gets the item (WITH_DONOR -> AT_CENTER)
+export const selectRecipient = async (productId, requesterUserId, recipientUserId) => {
+  try {
+    const response = await axios.put(
+      `http://localhost:8080/api/product/${productId}/selectRecipient`,
+      null,
+      { params: { requesterUserId, recipientUserId } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error selecting recipient:', error);
+    throw error;
+  }
+};
+
+// Collection-center step 2: donor confirms handoff is done (AT_CENTER -> TAKEN)
+export const markProductTaken = async (productId, requesterUserId) => {
+  try {
+    const response = await axios.put(
+      `http://localhost:8080/api/product/${productId}/markTaken`,
+      null,
+      { params: { requesterUserId } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error marking product as taken:', error);
+    throw error;
+  }
+};

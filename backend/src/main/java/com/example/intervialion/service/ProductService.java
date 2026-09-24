@@ -6,6 +6,7 @@ import com.example.intervialion.dto.ProductUpdateRequest;
 import com.example.intervialion.exception.ForbiddenException;
 import com.example.intervialion.exception.InvalidRequestException;
 import com.example.intervialion.model.Product;
+import com.example.intervialion.model.ProductStatus;
 import com.example.intervialion.model.SubCategory;
 import com.example.intervialion.model.User;
 import com.example.intervialion.repository.InterestRepository;
@@ -102,6 +103,8 @@ public class ProductService {
         String categoryName = subCategory != null && subCategory.getCategory() != null
                 ? subCategory.getCategory().getName() : null;
 
+        User recipient = product.getRecipient();
+
         return new ProductSummaryResponse(
                 product.getId(),
                 product.getName(),
@@ -112,7 +115,9 @@ public class ProductService {
                 categoryId,
                 categoryName,
                 subCategoryId,
-                subCategoryName
+                subCategoryName,
+                recipient != null ? recipient.getId() : null,
+                recipient != null ? recipient.getUsername() : null
         );
     }
 
@@ -175,5 +180,67 @@ public class ProductService {
         interestRepository.deleteByProductId(id);
         productRepository.delete(product);
         return true;
+    }
+
+    /**
+     * First step of the collection-center workflow: the donor picks one of
+     * the users who expressed interest. Moves WITH_DONOR -> AT_CENTER.
+     * Only the owning donor may do this, only from WITH_DONOR, and only for
+     * a user who actually has an open interest in this product. Returns null
+     * when the product doesn't exist (404 territory).
+     */
+    public ProductSummaryResponse selectRecipient(Long id, Long requesterUserId, Long recipientUserId) {
+        Product product = productRepository.findById(id).orElse(null);
+        if (product == null) {
+            return null;
+        }
+        requireOwnership(product, requesterUserId, "You can only select a recipient for your own products");
+
+        if (product.getStatus() != ProductStatus.WITH_DONOR) {
+            throw new InvalidRequestException("This product is not awaiting a recipient");
+        }
+        if (recipientUserId == null || !interestRepository.existsByProductIdAndUserId(id, recipientUserId)) {
+            throw new InvalidRequestException("Invalid recipientUserId");
+        }
+        User recipient = userRepository.findById(recipientUserId).orElse(null);
+        if (recipient == null) {
+            throw new InvalidRequestException("Invalid recipientUserId");
+        }
+
+        product.setRecipient(recipient);
+        product.setStatus(ProductStatus.AT_CENTER);
+
+        Product saved = productRepository.save(product);
+        return toSummary(saved);
+    }
+
+    /**
+     * Second step: the donor confirms the handoff is complete. Moves
+     * AT_CENTER -> TAKEN. Only the owning donor may do this, only once a
+     * recipient has actually been selected. Returns null when the product
+     * doesn't exist (404 territory).
+     */
+    public ProductSummaryResponse markTaken(Long id, Long requesterUserId) {
+        Product product = productRepository.findById(id).orElse(null);
+        if (product == null) {
+            return null;
+        }
+        requireOwnership(product, requesterUserId, "You can only mark your own products as taken");
+
+        if (product.getStatus() != ProductStatus.AT_CENTER) {
+            throw new InvalidRequestException("This product is not at the collection center");
+        }
+
+        product.setStatus(ProductStatus.TAKEN);
+
+        Product saved = productRepository.save(product);
+        return toSummary(saved);
+    }
+
+    private void requireOwnership(Product product, Long requesterUserId, String message) {
+        if (requesterUserId == null || product.getUser() == null
+                || !product.getUser().getId().equals(requesterUserId)) {
+            throw new ForbiddenException(message);
+        }
     }
 }

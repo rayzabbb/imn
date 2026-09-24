@@ -253,6 +253,111 @@
   font-size: 15px;
 }
 
+.pa-interest-badge--clickable {
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.pa-interest-badge--clickable:hover:not(:disabled) {
+  background-color: var(--pa-accent);
+  border-color: var(--pa-accent);
+  color: #fff;
+}
+
+.pa-interest-badge--clickable:disabled {
+  cursor: not-allowed;
+}
+
+/* Interested-users expandable panel */
+.pa-interested-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  background-color: #f8f9fb;
+  border: 1px solid var(--pa-border);
+}
+
+.pa-interested-panel--loading {
+  font-size: 13px;
+  color: var(--pa-text-muted);
+  text-align: center;
+}
+
+.pa-interested-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--pa-text-muted);
+  text-align: center;
+}
+
+.pa-interested-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 10px;
+  background-color: #fff;
+  border: 1px solid var(--pa-border);
+}
+
+.pa-interested-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.pa-interested-info strong {
+  font-size: 13px;
+}
+
+.pa-interested-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--pa-text-muted);
+}
+
+.pa-interested-row .pa-action-btn {
+  flex: none;
+  width: auto;
+  white-space: nowrap;
+}
+
+/* Recipient info (AT_CENTER / TAKEN) */
+.pa-recipient-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+  font-size: 13px;
+  color: var(--pa-text);
+}
+
+.pa-recipient-info .pa-action-btn {
+  flex: none;
+  width: auto;
+  white-space: nowrap;
+}
+
+.pa-recipient-info--done {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  justify-content: flex-start;
+}
+
+.pa-recipient-info--done svg {
+  color: #047857;
+}
+
 .pa-product-actions {
   display: flex;
   gap: 8px;
