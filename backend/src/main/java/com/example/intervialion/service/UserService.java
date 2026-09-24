@@ -37,30 +37,25 @@ public class UserService {
     }
 
     /**
-     * Rejects a duplicate username, otherwise persists the new user.
-     * Scans all users exactly as the controller did before the refactor.
+     * Rejects a duplicate username, otherwise persists the new user and
+     * returns it (so the caller gets the generated id back).
      */
-    public void registerUser(User user) {
-        List<User> users = userRepository.findAll();
-        for (User existingUser : users) {
-            if (existingUser.getUsername().equals(user.getUsername())) {
-                throw new InvalidRequestException("Username already exists");
-            }
+    public User registerUser(User user) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new InvalidRequestException("Username already exists");
         }
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
     /**
-     * Returns the user with this username, or null when none matches.
-     * Linear scan, preserved from the original controller implementation.
+     * Verifies credentials and returns the matching user, or null when the
+     * username is unknown or the password doesn't match.
      */
-    public User findByUsername(String username) {
-        List<User> users = userRepository.findAll();
-        for (User user : users) {
-            if (user.getUsername().equals(username)) {
-                return user;
-            }
+    public User login(String username, String password) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null || user.getPassword() == null || !user.getPassword().equals(password)) {
+            return null;
         }
-        return null;
+        return user;
     }
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
@@ -11,6 +11,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import TagOutlinedIcon from '@mui/icons-material/TagOutlined';
 import { fetchProductById, fetchCategories } from '../../slices/categorySlice';
+import { getInterestStatus, expressInterest, cancelInterest } from '../../services/interestservice';
 import './ProductDetails.css';
 
 const QUALITY_STYLES = {
@@ -22,16 +23,26 @@ const QUALITY_STYLES = {
 const ProductDetails = () => {
   const { productId } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { productDetails = {}, categories = [] } = useSelector((state) => state.category);
+  const { isLoggedIn, currentUser } = useSelector((state) => state.user);
 
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
-  const [isFavorite, setIsFavorite] = useState(false);
+
+  // Interest state for the current viewer on this product. Defaults are the
+  // safe "no interest yet" shape for anonymous visitors, who never get a
+  // status fetched for them.
+  const [interest, setInterest] = useState({ interested: false, owner: false });
+  const [interestLoading, setInterestLoading] = useState(false);
+  const [interestError, setInterestError] = useState(null);
 
   useEffect(() => {
     setIsLoading(true);
     setLoadError(null);
-    setIsFavorite(false);
+    setInterest({ interested: false, owner: false });
+    setInterestError(null);
     dispatch(fetchProductById(productId))
       .unwrap()
       .catch((err) => {
@@ -41,6 +52,40 @@ const ProductDetails = () => {
         setIsLoading(false);
       });
   }, [dispatch, productId]);
+
+  useEffect(() => {
+    if (!isLoggedIn || !currentUser?.id) {
+      return;
+    }
+    getInterestStatus(productId, currentUser.id)
+      .then(setInterest)
+      .catch(() => {
+        // Silent: the button just falls back to its default "not interested"
+        // state; the user can still try clicking it.
+      });
+  }, [productId, isLoggedIn, currentUser?.id]);
+
+  const handleInterestClick = () => {
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+    if (interest.owner || interestLoading) {
+      return;
+    }
+
+    setInterestLoading(true);
+    setInterestError(null);
+    const action = interest.interested ? cancelInterest : expressInterest;
+    action(productId, currentUser.id)
+      .then(setInterest)
+      .catch((err) => {
+        setInterestError(
+          typeof err?.response?.data === 'string' ? err.response.data : 'שגיאה בעדכון ההתעניינות'
+        );
+      })
+      .finally(() => setInterestLoading(false));
+  };
 
   useEffect(() => {
     if (categories.length === 0) {
@@ -118,16 +163,28 @@ const ProductDetails = () => {
           <div className="pd-body">
             <div className="pd-title-row">
               <h1 className="pd-name">{product.name}</h1>
-              <button
-                type="button"
-                className={`pd-favorite-btn ${isFavorite ? 'pd-favorite-btn--active' : ''}`}
-                onClick={() => setIsFavorite((v) => !v)}
-                aria-pressed={isFavorite}
-                aria-label="הוספה למועדפים"
-              >
-                {isFavorite ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
-              </button>
+              {interest.owner ? (
+                <span className="pd-owner-badge">זה החפץ שלך</span>
+              ) : (
+                <button
+                  type="button"
+                  className={`pd-interest-btn ${interest.interested ? 'pd-interest-btn--active' : ''}`}
+                  onClick={handleInterestClick}
+                  disabled={interestLoading}
+                  aria-pressed={interest.interested}
+                >
+                  {interest.interested ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
+                  {interest.interested ? 'אני מעוניין ✓' : 'אני מעוניין'}
+                </button>
+              )}
             </div>
+
+            {interestError && (
+              <div className="state-banner state-banner--error pd-interest-error">
+                <ErrorOutlineIcon fontSize="small" />
+                <span>{interestError}</span>
+              </div>
+            )}
 
             {product.quality && (
               <span className={`quality-badge ${qualityClass}`}>{product.quality}</span>
