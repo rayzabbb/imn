@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
@@ -8,9 +8,22 @@ import ImageNotSupportedOutlinedIcon from '@mui/icons-material/ImageNotSupported
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import TagOutlinedIcon from '@mui/icons-material/TagOutlined';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
 import { fetchProductById, fetchCategories } from '../../slices/categorySlice';
+import {
+  getInterestStatus,
+  expressInterest,
+  cancelInterest,
+  getDonorContact,
+} from '../../services/interestservice';
 import './ProductDetails.css';
 
 const QUALITY_STYLES = {
@@ -22,16 +35,35 @@ const QUALITY_STYLES = {
 const ProductDetails = () => {
   const { productId } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { productDetails = {}, categories = [] } = useSelector((state) => state.category);
+  const { isLoggedIn, currentUser } = useSelector((state) => state.user);
 
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
-  const [isFavorite, setIsFavorite] = useState(false);
+
+  // Interest state for the current viewer on this product. Defaults are the
+  // safe "no interest yet" shape for anonymous visitors, who never get a
+  // status fetched for them.
+  const [interest, setInterest] = useState({ interested: false, owner: false });
+  const [interestLoading, setInterestLoading] = useState(false);
+  const [interestError, setInterestError] = useState(null);
+
+  // Donor's contact details - only fetched once this viewer has expressed
+  // interest (the backend enforces the same gate, so this is purely a UI
+  // cache of what expressing interest already unlocked).
+  const [donorContact, setDonorContact] = useState(null);
+  const [donorContactLoading, setDonorContactLoading] = useState(false);
+  const [donorContactError, setDonorContactError] = useState(null);
 
   useEffect(() => {
     setIsLoading(true);
     setLoadError(null);
-    setIsFavorite(false);
+    setInterest({ interested: false, owner: false });
+    setInterestError(null);
+    setDonorContact(null);
+    setDonorContactError(null);
     dispatch(fetchProductById(productId))
       .unwrap()
       .catch((err) => {
@@ -41,6 +73,53 @@ const ProductDetails = () => {
         setIsLoading(false);
       });
   }, [dispatch, productId]);
+
+  useEffect(() => {
+    if (!isLoggedIn || !currentUser?.id) {
+      return;
+    }
+    getInterestStatus(productId, currentUser.id)
+      .then(setInterest)
+      .catch(() => {
+        // Silent: the button just falls back to its default "not interested"
+        // state; the user can still try clicking it.
+      });
+  }, [productId, isLoggedIn, currentUser?.id]);
+
+  useEffect(() => {
+    if (!isLoggedIn || !currentUser?.id || !interest.interested) {
+      setDonorContact(null);
+      return;
+    }
+    setDonorContactLoading(true);
+    setDonorContactError(null);
+    getDonorContact(productId, currentUser.id)
+      .then(setDonorContact)
+      .catch(() => setDonorContactError('שגיאה בטעינת פרטי הקשר של המוסר'))
+      .finally(() => setDonorContactLoading(false));
+  }, [productId, isLoggedIn, currentUser?.id, interest.interested]);
+
+  const handleInterestClick = () => {
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+    if (interest.owner || interestLoading) {
+      return;
+    }
+
+    setInterestLoading(true);
+    setInterestError(null);
+    const action = interest.interested ? cancelInterest : expressInterest;
+    action(productId, currentUser.id)
+      .then(setInterest)
+      .catch((err) => {
+        setInterestError(
+          typeof err?.response?.data === 'string' ? err.response.data : 'שגיאה בעדכון ההתעניינות'
+        );
+      })
+      .finally(() => setInterestLoading(false));
+  };
 
   useEffect(() => {
     if (categories.length === 0) {
@@ -118,16 +197,39 @@ const ProductDetails = () => {
           <div className="pd-body">
             <div className="pd-title-row">
               <h1 className="pd-name">{product.name}</h1>
-              <button
-                type="button"
-                className={`pd-favorite-btn ${isFavorite ? 'pd-favorite-btn--active' : ''}`}
-                onClick={() => setIsFavorite((v) => !v)}
-                aria-pressed={isFavorite}
-                aria-label="הוספה למועדפים"
-              >
-                {isFavorite ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
-              </button>
+              {interest.owner && <span className="pd-owner-badge">זה החפץ שלך</span>}
+              {!interest.owner && product.status === 'AT_CENTER' && (
+                <span className="pd-status-info-badge pd-status-info-badge--at-center">
+                  <WarehouseOutlinedIcon fontSize="small" />
+                  המוצר נמצא במרכז האיסוף
+                </span>
+              )}
+              {!interest.owner && product.status === 'TAKEN' && (
+                <span className="pd-status-info-badge pd-status-info-badge--taken">
+                  <CheckCircleOutlineIcon fontSize="small" />
+                  המוצר כבר נמסר
+                </span>
+              )}
+              {!interest.owner && product.status === 'WITH_DONOR' && (
+                <button
+                  type="button"
+                  className={`pd-interest-btn ${interest.interested ? 'pd-interest-btn--active' : ''}`}
+                  onClick={handleInterestClick}
+                  disabled={interestLoading}
+                  aria-pressed={interest.interested}
+                >
+                  {interest.interested ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
+                  {interest.interested ? 'אני מעוניין ✓' : 'אני מעוניין'}
+                </button>
+              )}
             </div>
+
+            {interestError && (
+              <div className="state-banner state-banner--error pd-interest-error">
+                <ErrorOutlineIcon fontSize="small" />
+                <span>{interestError}</span>
+              </div>
+            )}
 
             {product.quality && (
               <span className={`quality-badge ${qualityClass}`}>{product.quality}</span>
@@ -140,10 +242,47 @@ const ProductDetails = () => {
               </div>
             )}
 
-            <button type="button" className="pd-cta-btn">
-              <ChatBubbleOutlineIcon fontSize="small" />
-              יצירת קשר עם המוכר
-            </button>
+            {interest.interested && (
+              <div className="pd-donor-contact">
+                <h2>
+                  <ChatBubbleOutlineIcon fontSize="small" />
+                  פרטי יצירת קשר עם המוסר
+                </h2>
+
+                {donorContactLoading && <p className="pd-donor-contact-loading">טוען פרטי קשר...</p>}
+
+                {!donorContactLoading && donorContactError && (
+                  <div className="state-banner state-banner--error">
+                    <ErrorOutlineIcon fontSize="small" />
+                    <span>{donorContactError}</span>
+                  </div>
+                )}
+
+                {!donorContactLoading && donorContact && (
+                  <ul className="pd-donor-contact-list">
+                    <li>
+                      <PersonOutlineIcon fontSize="small" /> {donorContact.username}
+                    </li>
+                    <li>
+                      <EmailOutlinedIcon fontSize="small" /> {donorContact.email}
+                    </li>
+                    <li>
+                      <PhoneOutlinedIcon fontSize="small" /> {donorContact.phone}
+                    </li>
+                    {donorContact.city && (
+                      <li>
+                        <LocationOnOutlinedIcon fontSize="small" /> {donorContact.city}
+                      </li>
+                    )}
+                    {donorContact.timeToContac && (
+                      <li>
+                        <AccessTimeOutlinedIcon fontSize="small" /> {donorContact.timeToContac}
+                      </li>
+                    )}
+                  </ul>
+                )}
+              </div>
+            )}
 
             <div className="pd-details-section">
               <h2>פרטי המוצר</h2>

@@ -1,6 +1,5 @@
 package com.example.intervialion.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -12,6 +11,12 @@ public class Product {
     private String ManufacturerNameOrBrand;
     private String quality;
 
+    // Lifecycle of the donation: WITH_DONOR (default, just published) ->
+    // AT_CENTER -> TAKEN. Stored as STRING so future statuses can be added
+    // without an ordinal-based data migration.
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status = ProductStatus.WITH_DONOR;
+
     @ManyToOne
     @JoinColumn(name = "sub_category_id", nullable = false)
     @JsonBackReference("subCategory-products") // מונע חזרה אינסופית מתת הקטגוריה
@@ -21,6 +26,7 @@ public class Product {
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference("user-products") // מונע חזרה אינסופית מהמשתמש
     private User user;
+
     public Product() {}
 
     public Product(long id, String name, String manufacturerNameOrBrand, String quality, SubCategory subCategory, User user) {
@@ -40,6 +46,9 @@ public class Product {
     public void setManufacturerNameOrBrand(String manufacturerNameOrBrand) { this.ManufacturerNameOrBrand = manufacturerNameOrBrand; }
     public String getQuality() { return quality; }
     public void setQuality(String quality) { this.quality = quality; }
+
+    public ProductStatus getStatus() { return status; }
+    public void setStatus(ProductStatus status) { this.status = status; }
 
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }

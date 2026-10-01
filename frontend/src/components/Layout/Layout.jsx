@@ -1,18 +1,30 @@
 import React, { useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import SearchIcon from "@mui/icons-material/Search";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import LogoutIcon from "@mui/icons-material/Logout";
 import AddIcon from "@mui/icons-material/Add";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import StorefrontIcon from "@mui/icons-material/Storefront";
+import { logoutUser } from "../../slices/userSlice";
 import "./Layout.css"; // סגנונות לסרגל ניווט
 
 const Layout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { isLoggedIn, currentUser } = useSelector((state) => state.user);
 
   const closeMenu = () => setIsMenuOpen(false);
+
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    closeMenu();
+    navigate("/");
+  };
 
   return (
     <div>
@@ -47,9 +59,26 @@ const Layout = () => {
               <span>פרסום חפץ</span>
             </Link>
 
-            <button type="button" className="icon-btn navbar-user" aria-label="אזור אישי">
-              <PersonOutlineIcon fontSize="small" />
-            </button>
+            {isLoggedIn ? (
+              <div className="navbar-user navbar-user--logged-in">
+                <Link to="/profile" className="navbar-user-name" onClick={closeMenu}>
+                  <PersonOutlineIcon fontSize="small" />
+                  {currentUser.username}
+                </Link>
+                <button
+                  type="button"
+                  className="icon-btn"
+                  aria-label="התנתקות"
+                  onClick={handleLogout}
+                >
+                  <LogoutIcon fontSize="small" />
+                </button>
+              </div>
+            ) : (
+              <Link to="/login" className="icon-btn navbar-user" aria-label="התחברות">
+                <PersonOutlineIcon fontSize="small" />
+              </Link>
+            )}
 
             <button
               type="button"
@@ -82,10 +111,23 @@ const Layout = () => {
               <Link to="/category" className="navbar-link" onClick={closeMenu}>קטגוריות</Link>
               <Link to="/about" className="navbar-link" onClick={closeMenu}>עלינו</Link>
             </nav>
-            <button type="button" className="navbar-user-mobile">
-              <PersonOutlineIcon fontSize="small" />
-              <span>אזור אישי</span>
-            </button>
+            {isLoggedIn ? (
+              <>
+                <Link to="/profile" className="navbar-user-mobile" onClick={closeMenu}>
+                  <PersonOutlineIcon fontSize="small" />
+                  <span>אזור אישי ({currentUser.username})</span>
+                </Link>
+                <button type="button" className="navbar-user-mobile" onClick={handleLogout}>
+                  <LogoutIcon fontSize="small" />
+                  <span>התנתקות</span>
+                </button>
+              </>
+            ) : (
+              <Link to="/login" className="navbar-user-mobile" onClick={closeMenu}>
+                <PersonOutlineIcon fontSize="small" />
+                <span>התחברות</span>
+              </Link>
+            )}
           </div>
         )}
       </header>

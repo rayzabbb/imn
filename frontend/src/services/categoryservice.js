@@ -58,3 +58,75 @@ export const addProduct = async (productPayload) => {
     throw error;
   }
 };
+
+// Fetch the logged-in user's own products, for the Personal Area.
+// The backend returns 204 (empty body) when the user has no products yet.
+export const getProductsByUser = async (userId) => {
+  try {
+    const response = await axios.get(`http://localhost:8080/api/product/GetProductsByUser/${userId}`);
+    return response.data || [];
+  } catch (error) {
+    console.error('Error fetching user products:', error);
+    throw error;
+  }
+};
+
+// Edit one of the logged-in user's own listings
+export const updateProduct = async (productId, payload, requesterUserId) => {
+  try {
+    const response = await axios.put(
+      `http://localhost:8080/api/product/updateProduct/${productId}`,
+      payload,
+      { params: { requesterUserId } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error updating product:', error);
+    throw error;
+  }
+};
+
+// Delete one of the logged-in user's own listings
+export const deleteProduct = async (productId, requesterUserId) => {
+  try {
+    await axios.delete(`http://localhost:8080/api/product/deleteProduct/${productId}`, {
+      params: { requesterUserId },
+    });
+    return productId;
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    throw error;
+  }
+};
+
+// Collection-center step 1: donor brings the item to the center
+// (WITH_DONOR -> AT_CENTER). Not reserved for anyone - any interested user
+// (or anyone at all) may come collect it there.
+export const moveProductToCenter = async (productId, requesterUserId) => {
+  try {
+    const response = await axios.put(
+      `http://localhost:8080/api/product/${productId}/moveToCenter`,
+      null,
+      { params: { requesterUserId } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error moving product to center:', error);
+    throw error;
+  }
+};
+
+// Collection-center step 2: donor confirms handoff is done (AT_CENTER -> TAKEN)
+export const markProductTaken = async (productId, requesterUserId) => {
+  try {
+    const response = await axios.put(
+      `http://localhost:8080/api/product/${productId}/markTaken`,
+      null,
+      { params: { requesterUserId } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error marking product as taken:', error);
+    throw error;
+  }
+};

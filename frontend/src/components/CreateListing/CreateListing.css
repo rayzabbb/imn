@@ -81,6 +81,11 @@
   color: var(--cl-text-muted);
 }
 
+.cl-seller-hint {
+  margin: -12px 0 0;
+  text-align: right;
+}
+
 .cl-field-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

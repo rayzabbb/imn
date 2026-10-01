@@ -2,6 +2,7 @@ package com.example.intervialion.config;
 
 import com.example.intervialion.model.Category;
 import com.example.intervialion.model.Product;
+import com.example.intervialion.model.ProductStatus;
 import com.example.intervialion.model.SubCategory;
 import com.example.intervialion.model.User;
 import com.example.intervialion.repository.CategoryRepository;
@@ -78,6 +79,21 @@ public class DataSeeder implements CommandLineRunner {
         // a richer product count so the product grid has enough items to demo properly.
         // Safe to run on every startup - skips any product name that already exists.
         topUpFeaturedSubcategories(sellers);
+
+        // One-time migration: products created before the `status` column existed
+        // have it NULL after ddl-auto=update adds the column. Backfill them to the
+        // default WITH_DONOR so the Personal Area always has a real status to show.
+        backfillMissingProductStatus();
+    }
+
+    private void backfillMissingProductStatus() {
+        List<Product> withoutStatus = productRepository.findAll().stream()
+                .filter(p -> p.getStatus() == null)
+                .toList();
+        withoutStatus.forEach(p -> p.setStatus(ProductStatus.WITH_DONOR));
+        if (!withoutStatus.isEmpty()) {
+            productRepository.saveAll(withoutStatus);
+        }
     }
 
     private List<User> getOrCreateSellers() {

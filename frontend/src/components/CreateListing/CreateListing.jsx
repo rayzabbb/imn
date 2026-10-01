@@ -5,16 +5,10 @@ import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import CategoryIcon from '@mui/icons-material/Category';
 import LabelOutlinedIcon from '@mui/icons-material/LabelOutlined';
 import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
-import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
-import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
-import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
-import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { fetchCategories, fetchSubCategoriesByCategory, createProduct } from '../../slices/categorySlice';
-import { signUp } from '../../slices/userSlice';
 import './CreateListing.css';
 
 const QUALITY_OPTIONS = ['חדש', 'כמו חדש', 'משומש'];
@@ -25,18 +19,13 @@ const initialForm = {
   subCategoryId: '',
   manufacturerNameOrBrand: '',
   quality: '',
-  username: '',
-  email: '',
-  phone: '',
-  city: '',
-  adress: '',
-  timeToContac: '',
 };
 
 const CreateListing = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { categories = [], subCategoryList = {} } = useSelector((state) => state.category);
+  const { currentUser } = useSelector((state) => state.user);
 
   const [form, setForm] = useState(initialForm);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -88,17 +77,6 @@ const CreateListing = () => {
     if (!form.categoryId) errors.categoryId = 'יש לבחור קטגוריה';
     if (!form.subCategoryId) errors.subCategoryId = 'יש לבחור תת-קטגוריה';
     if (!form.quality) errors.quality = 'יש לבחור מצב/איכות';
-    if (!form.username.trim()) errors.username = 'יש להזין שם ליצירת קשר';
-    if (!form.email.trim()) {
-      errors.email = 'יש להזין אימייל';
-    } else if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) {
-      errors.email = 'כתובת אימייל לא תקינה';
-    }
-    if (!form.phone.trim()) {
-      errors.phone = 'יש להזין מספר טלפון';
-    } else if (!/^\d{7,10}$/.test(form.phone.trim())) {
-      errors.phone = 'מספר טלפון לא תקין (ספרות בלבד)';
-    }
     return errors;
   };
 
@@ -116,24 +94,13 @@ const CreateListing = () => {
     setIsSubmitting(true);
 
     try {
-      const seller = await dispatch(
-        signUp({
-          username: form.username.trim(),
-          email: form.email.trim(),
-          phone: Number(form.phone.trim()),
-          city: form.city.trim(),
-          adress: form.adress.trim(),
-          timeToContac: form.timeToContac.trim(),
-        })
-      ).unwrap();
-
       const product = await dispatch(
         createProduct({
           name: form.name.trim(),
           manufacturerNameOrBrand: form.manufacturerNameOrBrand.trim(),
           quality: form.quality,
           subCategoryId: Number(form.subCategoryId),
-          userId: seller.id,
+          userId: currentUser.id,
         })
       ).unwrap();
 
@@ -277,105 +244,9 @@ const CreateListing = () => {
             </div>
           </section>
 
-          <section className="cl-section">
-            <h2>
-              <PersonOutlineIcon fontSize="small" />
-              פרטי יצירת קשר
-            </h2>
-            <p className="cl-section-hint">
-              הפרטים ישמשו לשמירת הפרסום במערכת וליצירת קשר בנוגע לחפץ.
-            </p>
-
-            <div className="cl-field-row">
-              <div className="cl-field">
-                <label htmlFor="username">
-                  <PersonOutlineIcon fontSize="inherit" /> שם מלא
-                </label>
-                <input
-                  id="username"
-                  type="text"
-                  value={form.username}
-                  onChange={(e) => updateField('username', e.target.value)}
-                  placeholder="השם שיוצג"
-                  className={fieldErrors.username ? 'cl-input--error' : ''}
-                />
-                {fieldErrors.username && <span className="cl-field-error">{fieldErrors.username}</span>}
-              </div>
-
-              <div className="cl-field">
-                <label htmlFor="email">
-                  <EmailOutlinedIcon fontSize="inherit" /> אימייל
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => updateField('email', e.target.value)}
-                  placeholder="example@mail.com"
-                  className={fieldErrors.email ? 'cl-input--error' : ''}
-                />
-                {fieldErrors.email && <span className="cl-field-error">{fieldErrors.email}</span>}
-              </div>
-            </div>
-
-            <div className="cl-field-row">
-              <div className="cl-field">
-                <label htmlFor="phone">
-                  <PhoneOutlinedIcon fontSize="inherit" /> טלפון
-                </label>
-                <input
-                  id="phone"
-                  type="tel"
-                  value={form.phone}
-                  onChange={(e) => updateField('phone', e.target.value)}
-                  placeholder="0501234567"
-                  className={fieldErrors.phone ? 'cl-input--error' : ''}
-                />
-                {fieldErrors.phone && <span className="cl-field-error">{fieldErrors.phone}</span>}
-              </div>
-
-              <div className="cl-field">
-                <label htmlFor="city">
-                  <LocationOnOutlinedIcon fontSize="inherit" /> עיר (לא חובה)
-                </label>
-                <input
-                  id="city"
-                  type="text"
-                  value={form.city}
-                  onChange={(e) => updateField('city', e.target.value)}
-                  placeholder="תל אביב"
-                />
-              </div>
-            </div>
-
-            <div className="cl-field-row">
-              <div className="cl-field">
-                <label htmlFor="adress">
-                  <LocationOnOutlinedIcon fontSize="inherit" /> כתובת (לא חובה)
-                </label>
-                <input
-                  id="adress"
-                  type="text"
-                  value={form.adress}
-                  onChange={(e) => updateField('adress', e.target.value)}
-                  placeholder="רחוב ומספר"
-                />
-              </div>
-
-              <div className="cl-field">
-                <label htmlFor="timeToContac">
-                  <AccessTimeOutlinedIcon fontSize="inherit" /> שעות נוחות ליצירת קשר (לא חובה)
-                </label>
-                <input
-                  id="timeToContac"
-                  type="text"
-                  value={form.timeToContac}
-                  onChange={(e) => updateField('timeToContac', e.target.value)}
-                  placeholder="לדוגמה: אחרי הצהריים"
-                />
-              </div>
-            </div>
-          </section>
+          <p className="cl-section-hint cl-seller-hint">
+            הפרסום יישמר תחת החשבון שלך ({currentUser.username}). פרטי יצירת קשר מגיעים מהפרופיל שלך.
+          </p>
 
           <button type="submit" className="cl-submit-btn" disabled={isSubmitting}>
             <AddIcon fontSize="small" />
