@@ -4,12 +4,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { fetchCategories, fetchSubCategoriesByCategory } from '../../slices/categorySlice';
 import { editMyProduct } from '../../slices/myProductsSlice';
+import ImageUploadField from '../common/ImageUploadField';
 
 const QUALITY_OPTIONS = ['חדש', 'כמו חדש', 'משומש'];
 
 /**
  * Editable fields mirror ProductUpdateRequest on the backend: name, brand,
- * quality, subCategory. Status is deliberately not editable here - it
+ * quality, subCategory - plus the image (replace or remove). Status is deliberately not editable here - it
  * belongs to the future interest/collection-center workflow.
  */
 const EditProductModal = ({ product, onClose }) => {
@@ -23,6 +24,7 @@ const EditProductModal = ({ product, onClose }) => {
     categoryId: product.categoryId ? String(product.categoryId) : '',
     subCategoryId: product.subCategoryId ? String(product.subCategoryId) : '',
   });
+  const [image, setImage] = useState({ file: null, removed: false });
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitError, setSubmitError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,6 +97,8 @@ const EditProductModal = ({ product, onClose }) => {
             quality: form.quality,
             subCategoryId: Number(form.subCategoryId),
           },
+          imageFile: image.file,
+          removeImage: image.removed,
         })
       ).unwrap();
       onClose();
@@ -204,6 +208,15 @@ const EditProductModal = ({ product, onClose }) => {
             {fieldErrors.quality && <span className="pa-modal-field-error">{fieldErrors.quality}</span>}
           </div>
         </div>
+
+        <ImageUploadField
+          label="תמונת החפץ"
+          file={image.file}
+          existingImageUrl={product.imageUrl}
+          removed={image.removed}
+          onChange={setImage}
+          compact
+        />
 
         <div className="pa-modal-actions">
           <button type="button" className="pa-modal-cancel" onClick={onClose} disabled={isSubmitting}>

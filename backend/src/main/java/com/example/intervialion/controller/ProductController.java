@@ -7,9 +7,11 @@ import com.example.intervialion.model.Product;
 import com.example.intervialion.security.JwtUserPrincipal;
 import com.example.intervialion.service.ProductService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -57,7 +59,7 @@ public class ProductController {
     }
 
     /** The owner is always the authenticated caller, never a client-supplied id. */
-    @PostMapping("/addProduct")
+    @PostMapping(value = "/addProduct", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> addProduct(
             @RequestBody ProductCreateRequest request,
             @AuthenticationPrincipal JwtUserPrincipal principal
@@ -65,6 +67,21 @@ public class ProductController {
         // Validation failures surface as InvalidRequestException and are turned
         // into the same 400 + message responses by GlobalExceptionHandler.
         Product saved = productService.createProduct(request, principal.getId());
+        return new ResponseEntity<>(saved, HttpStatus.CREATED);
+    }
+
+    /**
+     * Multipart variant of addProduct, for listings with an image: a "product"
+     * JSON part (same shape as ProductCreateRequest) plus an optional "image"
+     * file part. The JSON-only endpoint above is unchanged.
+     */
+    @PostMapping(value = "/addProduct", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Object> addProductWithImage(
+            @RequestPart("product") ProductCreateRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @AuthenticationPrincipal JwtUserPrincipal principal
+    ) {
+        Product saved = productService.createProduct(request, principal.getId(), image);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
@@ -78,7 +95,7 @@ public class ProductController {
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
 
-    @PutMapping("/updateProduct/{id}")
+    @PutMapping(value = "/updateProduct/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> updateProduct(
             @PathVariable Long id,
             @RequestBody ProductUpdateRequest request,
@@ -87,6 +104,26 @@ public class ProductController {
         // Ownership failures surface as ForbiddenException (403) and validation
         // failures as InvalidRequestException (400), both via GlobalExceptionHandler.
         ProductSummaryResponse updated = productService.updateProduct(id, request, principal.getId());
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * Multipart variant of updateProduct: a "product" JSON part, an optional
+     * "image" file that replaces the current image, and an optional
+     * removeImage=true to clear it. Without either, the image is kept.
+     */
+    @PutMapping(value = "/updateProduct/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Object> updateProductWithImage(
+            @PathVariable Long id,
+            @RequestPart("product") ProductUpdateRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "removeImage", defaultValue = "false") boolean removeImage,
+            @AuthenticationPrincipal JwtUserPrincipal principal
+    ) {
+        ProductSummaryResponse updated = productService.updateProduct(id, request, principal.getId(), image, removeImage);
         if (updated == null) {
             return ResponseEntity.notFound().build();
         }

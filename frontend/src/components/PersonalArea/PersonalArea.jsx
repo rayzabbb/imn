@@ -25,6 +25,7 @@ import {
 import { fetchMyInterests } from '../../slices/myInterestsSlice';
 import EditProductModal from './EditProductModal';
 import InterestedUsersPanel from './InterestedUsersPanel';
+import { resolveImageUrl } from '../../services/imageUrl';
 import './PersonalArea.css';
 
 const STATUS_META = {
@@ -231,6 +232,14 @@ const PersonalArea = () => {
 
                   return (
                     <div key={product.id} className="pa-product-card">
+                      {product.imageUrl && (
+                        <img
+                          src={resolveImageUrl(product.imageUrl)}
+                          alt={product.name}
+                          className="pa-product-image"
+                          loading="lazy"
+                        />
+                      )}
                       <h3>{product.name}</h3>
                       <div className="pa-product-meta">
                         {product.manufacturerNameOrBrand && <span>יצרן/מותג: {product.manufacturerNameOrBrand}</span>}
@@ -375,6 +384,14 @@ const PersonalArea = () => {
                       to={`/product/${item.productId}`}
                       className="pa-product-card pa-product-card--link"
                     >
+                      {item.imageUrl && (
+                        <img
+                          src={resolveImageUrl(item.imageUrl)}
+                          alt={item.name}
+                          className="pa-product-image"
+                          loading="lazy"
+                        />
+                      )}
                       <h3>{item.name}</h3>
                       <div className="pa-product-meta">
                         {item.manufacturerNameOrBrand && <span>יצרן/מותג: {item.manufacturerNameOrBrand}</span>}

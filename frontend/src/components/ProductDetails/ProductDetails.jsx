@@ -24,6 +24,7 @@ import {
   cancelInterest,
   getDonorContact,
 } from '../../services/interestservice';
+import { resolveImageUrl } from '../../services/imageUrl';
 import './ProductDetails.css';
 
 const QUALITY_STYLES = {
@@ -189,10 +190,16 @@ const ProductDetails = () => {
 
       {!isLoading && product && (
         <div className="pd-card">
-          <div className="pd-visual">
-            <ImageNotSupportedOutlinedIcon />
-            <span>לא הועלתה תמונה למוצר זה</span>
-          </div>
+          {product.imageUrl ? (
+            <div className="pd-visual pd-visual--image">
+              <img src={resolveImageUrl(product.imageUrl)} alt={product.name} />
+            </div>
+          ) : (
+            <div className="pd-visual">
+              <ImageNotSupportedOutlinedIcon />
+              <span>לא הועלתה תמונה למוצר זה</span>
+            </div>
+          )}
 
           <div className="pd-body">
             <div className="pd-title-row">

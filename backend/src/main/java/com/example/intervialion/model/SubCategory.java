@@ -12,6 +12,8 @@ public class SubCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+    // Public URL path of the uploaded image (see ImageStorageService), or null.
+    private String imageUrl;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
@@ -40,6 +42,12 @@ public class SubCategory {
     }
     public void setName(String name) {
         this.name = name;
+    }
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
     public Category getCategory() {
         return category;

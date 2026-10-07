@@ -11,6 +11,8 @@ public class Category {
     private long id;
     private String name;
     private String description;
+    // Public URL path of the uploaded image (see ImageStorageService), or null.
+    private String imageUrl;
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference // טוען את תתי הקטגוריות מבלי להיכנס לסיבוב אינסופי
     private List<SubCategory> subCategories;
@@ -50,6 +52,14 @@ public class Category {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public List<SubCategory> getSubCategories() {

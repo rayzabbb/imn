@@ -15,6 +15,7 @@ import com.example.intervialion.repository.SubCategoryRepository;
 import com.example.intervialion.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -25,15 +26,18 @@ public class ProductService {
     private final SubCategoryRepository subCategoryRepository;
     private final UserRepository userRepository;
     private final InterestRepository interestRepository;
+    private final ImageStorageService imageStorageService;
 
     public ProductService(ProductRepository productRepository,
                           SubCategoryRepository subCategoryRepository,
                           UserRepository userRepository,
-                          InterestRepository interestRepository) {
+                          InterestRepository interestRepository,
+                          ImageStorageService imageStorageService) {
         this.productRepository = productRepository;
         this.subCategoryRepository = subCategoryRepository;
         this.userRepository = userRepository;
         this.interestRepository = interestRepository;
+        this.imageStorageService = imageStorageService;
     }
 
     /** Public browsing listing - excludes TAKEN items (already given away). */
@@ -56,6 +60,11 @@ public class ProductService {
      * the request body.
      */
     public Product createProduct(ProductCreateRequest request, Long authenticatedUserId) {
+        return createProduct(request, authenticatedUserId, null);
+    }
+
+    /** Same as above, optionally with an uploaded image (null = no image). */
+    public Product createProduct(ProductCreateRequest request, Long authenticatedUserId, MultipartFile image) {
         if (request.name() == null || request.name().isBlank()) {
             throw new InvalidRequestException("Product name is required");
         }
@@ -80,7 +89,17 @@ public class ProductService {
         product.setSubCategory(subCategory);
         product.setUser(user);
 
-        return productRepository.save(product);
+        // Stored only after validation passes, and removed again if the save fails,
+        // so a rejected request never leaves an orphaned file behind.
+        if (image != null && !image.isEmpty()) {
+            product.setImageUrl(imageStorageService.store(image));
+        }
+        try {
+            return productRepository.save(product);
+        } catch (RuntimeException e) {
+            imageStorageService.delete(product.getImageUrl());
+            throw e;
+        }
     }
 
     /**
@@ -109,6 +128,7 @@ public class ProductService {
                 product.getName(),
                 product.getManufacturerNameOrBrand(),
                 product.getQuality(),
+                product.getImageUrl(),
                 product.getStatus(),
                 countInterestedUsers(product),
                 categoryId,
@@ -129,6 +149,16 @@ public class ProductService {
      * interest/collection-center workflow. Only the owning donor may edit.
      */
     public ProductSummaryResponse updateProduct(Long id, ProductUpdateRequest request, Long requesterUserId) {
+        return updateProduct(id, request, requesterUserId, null, false);
+    }
+
+    /**
+     * Same as above, plus image changes: a non-empty image replaces the
+     * current one; removeImage=true (with no new image) clears it. Otherwise
+     * the existing image is kept.
+     */
+    public ProductSummaryResponse updateProduct(Long id, ProductUpdateRequest request, Long requesterUserId,
+                                                MultipartFile image, boolean removeImage) {
         Product product = productRepository.findById(id).orElse(null);
         if (product == null) {
             return null;
@@ -154,7 +184,26 @@ public class ProductService {
         product.setQuality(request.quality());
         product.setSubCategory(subCategory);
 
-        Product saved = productRepository.save(product);
+        String previousImageUrl = product.getImageUrl();
+        String newImageUrl = null;
+        if (image != null && !image.isEmpty()) {
+            newImageUrl = imageStorageService.store(image);
+            product.setImageUrl(newImageUrl);
+        } else if (removeImage) {
+            product.setImageUrl(null);
+        }
+
+        Product saved;
+        try {
+            saved = productRepository.save(product);
+        } catch (RuntimeException e) {
+            imageStorageService.delete(newImageUrl);
+            throw e;
+        }
+        // The old file is only removed once the new state is safely persisted.
+        if (previousImageUrl != null && !previousImageUrl.equals(saved.getImageUrl())) {
+            imageStorageService.delete(previousImageUrl);
+        }
         return toSummary(saved);
     }
 
@@ -176,6 +225,7 @@ public class ProductService {
         }
         interestRepository.deleteByProductId(id);
         productRepository.delete(product);
+        imageStorageService.delete(product.getImageUrl());
         return true;
     }
 

@@ -1,15 +1,18 @@
 package com.example.intervialion.config;
 
 import com.example.intervialion.model.Category;
+import com.example.intervialion.model.Manger;
 import com.example.intervialion.model.Product;
 import com.example.intervialion.model.ProductStatus;
 import com.example.intervialion.model.SubCategory;
 import com.example.intervialion.model.User;
 import com.example.intervialion.repository.CategoryRepository;
+import com.example.intervialion.repository.MangerRepository;
 import com.example.intervialion.repository.ProductRepository;
 import com.example.intervialion.repository.SubCategoryRepository;
 import com.example.intervialion.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -34,7 +37,13 @@ public class DataSeeder implements CommandLineRunner {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private MangerRepository mangerRepository;
+    @Autowired
     private PasswordEncoder passwordEncoder;
+
+    // From application-local.properties / env, never the repo; empty = don't seed an admin
+    @Value("${app.seed.admin-password:}")
+    private String adminSeedPassword;
 
     private record ProductSeed(String name, String brand, String quality) {
     }
@@ -48,6 +57,7 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         List<User> sellers = getOrCreateSellers();
+        ensureManagerAccount();
 
         if (categoryRepository.count() <= 1) {
             List<CategorySeed> seedData = buildSeedData();
@@ -153,6 +163,25 @@ public class DataSeeder implements CommandLineRunner {
         michal.setTimeToContac("אחרי הצהריים");
 
         return userRepository.saveAll(List.of(noa, yossi, michal));
+    }
+
+    /**
+     * Dev convenience: a MANAGER account so the catalog-management screens
+     * (creating categories/subcategories with images) can actually be used.
+     * Only created when app.seed.admin-password is configured locally and the
+     * "admin" username isn't taken yet.
+     */
+    private void ensureManagerAccount() {
+        if (adminSeedPassword == null || adminSeedPassword.isBlank()
+                || userRepository.findByUsername("admin").isPresent()) {
+            return;
+        }
+        Manger admin = new Manger();
+        admin.setUsername("admin");
+        admin.setPassword(passwordEncoder.encode(adminSeedPassword));
+        admin.setEmail("admin@example.com");
+        admin.setCity("תל אביב");
+        mangerRepository.save(admin);
     }
 
     private void topUpFeaturedSubcategories(List<User> sellers) {

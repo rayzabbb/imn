@@ -24,6 +24,18 @@ export const getSubCategoriesByCategory = async (categoryId) => {
   }
 };
 
+// Fetch all available products (the backend already excludes TAKEN items).
+// Returns 204 with an empty body when there are none.
+export const getAllProducts = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/api/product/GetProducts');
+    return response.data || [];
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    throw error;
+  }
+};
+
 // Fetch products by subcategory
 export const getProductsBySubCategory = async (subCategoryId) => {
   try {
@@ -48,10 +60,22 @@ export const getProductById = async (productId) => {
   }
 };
 
-// Create a new product listing
-export const addProduct = async (productPayload) => {
+// Builds the multipart body the backend's image-aware product endpoints expect:
+// a "product" JSON part (same fields as the JSON endpoints) plus an optional "image".
+const buildProductFormData = (productPayload, imageFile) => {
+  const formData = new FormData();
+  formData.append('product', new Blob([JSON.stringify(productPayload)], { type: 'application/json' }));
+  if (imageFile) {
+    formData.append('image', imageFile);
+  }
+  return formData;
+};
+
+// Create a new product listing, optionally with an image
+export const addProduct = async (productPayload, imageFile) => {
   try {
-    const response = await axios.post('http://localhost:8080/api/product/addProduct', productPayload);
+    const body = imageFile ? buildProductFormData(productPayload, imageFile) : productPayload;
+    const response = await axios.post('http://localhost:8080/api/product/addProduct', body);
     return response.data;
   } catch (error) {
     console.error('Error creating product:', error);
@@ -75,12 +99,16 @@ export const getMyProducts = async () => {
 
 // Edit one of the logged-in user's own listings. Ownership is enforced
 // backend-side from the JWT, not a requesterUserId the client would send.
-export const updateProduct = async (productId, payload) => {
+// imageFile replaces the current image; removeImage clears it.
+export const updateProduct = async (productId, payload, { imageFile, removeImage } = {}) => {
   try {
-    const response = await axios.put(
-      `http://localhost:8080/api/product/updateProduct/${productId}`,
-      payload
-    );
+    const url = `http://localhost:8080/api/product/updateProduct/${productId}`;
+    const response =
+      imageFile || removeImage
+        ? await axios.put(url, buildProductFormData(payload, imageFile), {
+            params: removeImage && !imageFile ? { removeImage: true } : undefined,
+          })
+        : await axios.put(url, payload);
     return response.data;
   } catch (error) {
     console.error('Error updating product:', error);
@@ -122,3 +150,42 @@ export const markProductTaken = async (productId) => {
     throw error;
   }
 };
+
+// ---- Catalog management (MANAGER only - enforced by the backend) ----
+
+// Create a category, optionally with an image
+export const addCategory = async ({ name, description, imageFile }) => {
+  const formData = new FormData();
+  formData.append('name', name);
+  if (description) formData.append('description', description);
+  if (imageFile) formData.append('image', imageFile);
+  const response = await axios.post('http://localhost:8080/api/category/addCategory', formData);
+  return response.data;
+};
+
+// Create a subcategory under a category, optionally with an image
+export const addSubCategory = async ({ name, categoryId, imageFile }) => {
+  const formData = new FormData();
+  formData.append('name', name);
+  formData.append('categoryId', categoryId);
+  if (imageFile) formData.append('image', imageFile);
+  const response = await axios.post('http://localhost:8080/api/subcategory/addSubCategory', formData);
+  return response.data;
+};
+
+// Replace (imageFile) or remove (null) the image of an existing category / subcategory
+const setCatalogImage = async (kind, id, imageFile) => {
+  const url = `http://localhost:8080/api/${kind}/${id}/image`;
+  if (!imageFile) {
+    const response = await axios.delete(url);
+    return response.data;
+  }
+  const formData = new FormData();
+  formData.append('image', imageFile);
+  const response = await axios.put(url, formData);
+  return response.data;
+};
+
+export const setCategoryImage = (categoryId, imageFile) => setCatalogImage('category', categoryId, imageFile);
+export const setSubCategoryImage = (subCategoryId, imageFile) =>
+  setCatalogImage('subcategory', subCategoryId, imageFile);

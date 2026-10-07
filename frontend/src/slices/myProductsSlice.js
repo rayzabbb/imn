@@ -29,9 +29,9 @@ export const fetchMyProducts = createAsyncThunk(
 
 export const editMyProduct = createAsyncThunk(
     'myProducts/editMyProduct',
-    async ({ productId, payload }, { rejectWithValue }) => {
+    async ({ productId, payload, imageFile, removeImage }, { rejectWithValue }) => {
         try {
-            return await updateProduct(productId, payload);
+            return await updateProduct(productId, payload, { imageFile, removeImage });
         } catch (error) {
             return rejectWithValue(extractErrorMessage(error, 'שגיאה בעדכון המוצר'));
         }

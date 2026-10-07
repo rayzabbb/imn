@@ -17,6 +17,7 @@ public record ProductSummaryResponse(
         String name,
         String manufacturerNameOrBrand,
         String quality,
+        String imageUrl,
         ProductStatus status,
         long interestedCount,
         Long categoryId,

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
@@ -8,10 +8,16 @@ import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined';
 import { fetchCategories, fetchSubCategoriesByCategory, createProduct } from '../../slices/categorySlice';
+import ImageUploadField from '../common/ImageUploadField';
 import './CreateListing.css';
 
 const QUALITY_OPTIONS = ['חדש', 'כמו חדש', 'משומש'];
+
+// Validation order (top to bottom) and the input each error belongs to
+const FIELD_ORDER = ['name', 'categoryId', 'subCategoryId', 'quality'];
+const FIELD_IDS = { name: 'name', categoryId: 'category', subCategoryId: 'subCategory', quality: 'quality' };
 
 const initialForm = {
   name: '',
@@ -28,11 +34,13 @@ const CreateListing = () => {
   const { currentUser } = useSelector((state) => state.user);
 
   const [form, setForm] = useState(initialForm);
+  const [imageFile, setImageFile] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [subCategoriesLoading, setSubCategoriesLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const errorBannerRef = useRef(null);
 
   useEffect(() => {
     if (categories.length === 0) {
@@ -87,6 +95,14 @@ const CreateListing = () => {
     const errors = validate();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
+      setSubmitError(null);
+      // The submit button sits at the bottom of the form - bring the first problem into view
+      const firstInvalid = FIELD_ORDER.find((field) => errors[field]);
+      const el = document.getElementById(FIELD_IDS[firstInvalid]);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.focus({ preventScroll: true });
+      }
       return;
     }
 
@@ -96,10 +112,13 @@ const CreateListing = () => {
     try {
       const product = await dispatch(
         createProduct({
-          name: form.name.trim(),
-          manufacturerNameOrBrand: form.manufacturerNameOrBrand.trim(),
-          quality: form.quality,
-          subCategoryId: Number(form.subCategoryId),
+          product: {
+            name: form.name.trim(),
+            manufacturerNameOrBrand: form.manufacturerNameOrBrand.trim(),
+            quality: form.quality,
+            subCategoryId: Number(form.subCategoryId),
+          },
+          imageFile,
         })
       ).unwrap();
 
@@ -108,10 +127,16 @@ const CreateListing = () => {
         navigate(`/product/${product.id}`);
       }, 1200);
     } catch (err) {
-      setSubmitError(err?.message || 'אירעה שגיאה בפרסום החפץ. נסו שוב.');
+      setSubmitError(typeof err === 'string' ? err : err?.message || 'אירעה שגיאה בפרסום החפץ. נסו שוב.');
       setIsSubmitting(false);
+      // the error banner is at the top of the form, far from the button that was just pressed
+      requestAnimationFrame(() =>
+        errorBannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      );
     }
   };
+
+  const hasFieldErrors = Object.values(fieldErrors).some(Boolean);
 
   return (
     <div className="create-listing-page" dir="rtl">
@@ -133,7 +158,7 @@ const CreateListing = () => {
       {!submitSuccess && (
         <form className="cl-card" onSubmit={handleSubmit} noValidate>
           {submitError && (
-            <div className="state-banner state-banner--error">
+            <div className="state-banner state-banner--error" ref={errorBannerRef} role="alert">
               <ErrorOutlineIcon />
               <span>{submitError}</span>
             </div>
@@ -243,9 +268,28 @@ const CreateListing = () => {
             </div>
           </section>
 
+          <section className="cl-section">
+            <h2>
+              <PhotoCameraOutlinedIcon fontSize="small" />
+              תמונה (לא חובה)
+            </h2>
+            <ImageUploadField
+              label="תמונת החפץ"
+              file={imageFile}
+              onChange={({ file }) => setImageFile(file)}
+            />
+          </section>
+
           <p className="cl-section-hint cl-seller-hint">
             הפרסום יישמר תחת החשבון שלך ({currentUser.username}). פרטי יצירת קשר מגיעים מהפרופיל שלך.
           </p>
+
+          {(hasFieldErrors || submitError) && (
+            <p className="cl-submit-error" role="alert">
+              <ErrorOutlineIcon fontSize="small" />
+              {submitError || 'יש להשלים את השדות המסומנים באדום לפני הפרסום'}
+            </p>
+          )}
 
           <button type="submit" className="cl-submit-btn" disabled={isSubmitting}>
             <AddIcon fontSize="small" />

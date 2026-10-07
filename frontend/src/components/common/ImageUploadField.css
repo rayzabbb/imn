@@ -1,0 +1,122 @@
+/* ImageUploadField.css - shared image picker (products, categories, subcategories) */
+
+.img-field {
+  --img-accent: #ff6a3d;
+  --img-accent-soft: rgba(255, 106, 61, 0.08);
+  --img-border: #e5e7eb;
+  --img-text-muted: #6b7280;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: "Rubik", "Arial", sans-serif;
+  text-align: right;
+}
+
+.img-field-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.img-field-input {
+  display: none;
+}
+
+.img-field-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 150px;
+  padding: 20px;
+  border: 2px dashed var(--img-border);
+  border-radius: 16px;
+  background-color: #fafafa;
+  color: var(--img-text-muted);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.img-field-drop:hover {
+  border-color: var(--img-accent);
+  background-color: var(--img-accent-soft);
+  color: var(--img-accent);
+}
+
+.img-field-drop svg {
+  font-size: 34px;
+}
+
+.img-field-drop span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.img-field-drop small {
+  font-size: 12px;
+}
+
+.img-field-drop--error {
+  border-color: #fca5a5;
+}
+
+.img-field-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.img-field-preview img {
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  border: 1px solid var(--img-border);
+  border-radius: 16px;
+  background-color: #fafafa;
+}
+
+.img-field-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.img-field-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 14px;
+  border: 1px solid var(--img-border);
+  border-radius: 999px;
+  background-color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.img-field-actions button:hover {
+  border-color: var(--img-accent);
+  color: var(--img-accent);
+}
+
+.img-field-actions .img-field-remove:hover {
+  border-color: #f87171;
+  color: #b91c1c;
+}
+
+.img-field-error {
+  font-size: 13px;
+  color: #b91c1c;
+}
+
+.img-field--compact .img-field-drop {
+  min-height: 110px;
+}
+
+.img-field--compact .img-field-preview img {
+  max-height: 160px;
+}

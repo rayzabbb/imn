@@ -168,6 +168,7 @@ public class InterestService {
                             product.getName(),
                             product.getManufacturerNameOrBrand(),
                             product.getQuality(),
+                            product.getImageUrl(),
                             product.getStatus(),
                             interest.getCreatedAt()
                     );

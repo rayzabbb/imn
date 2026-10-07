@@ -12,6 +12,8 @@ import Login from './components/Auth/Login';
 import SignUp from './components/Auth/SignUp';
 import RequireAuth from './components/Auth/RequireAuth';
 import PersonalArea from './components/PersonalArea/PersonalArea';
+import RequireManager from './components/Auth/RequireManager';
+import CatalogAdmin from './components/Admin/CatalogAdmin';
 
 
 function App() {
@@ -40,6 +42,14 @@ function App() {
               <RequireAuth>
                 <PersonalArea />
               </RequireAuth>
+            }
+          />
+          <Route
+            path="admin"
+            element={
+              <RequireManager>
+                <CatalogAdmin />
+              </RequireManager>
             }
           />
           <Route path="/about" element={<AboutUs />} />

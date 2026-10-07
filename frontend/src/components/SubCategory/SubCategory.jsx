@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSubCategoriesByCategory } from '../../slices/categorySlice';
 import { useParams, useNavigate } from 'react-router-dom'; // השתמש ב-useNavigate במקום useHistory
+import { resolveImageUrl } from '../../services/imageUrl';
 import './SubCategory.css';
 
 const SubCategory = () => {
@@ -34,6 +35,9 @@ const SubCategory = () => {
             onClick={() => handleSubCategoryClick(subCategory.id)}
             className="subcategory-button"
           >
+            {subCategory.imageUrl && (
+              <img src={resolveImageUrl(subCategory.imageUrl)} alt="" className="subcategory-button-image" />
+            )}
             {subCategory.name}
           </button>
         ))}

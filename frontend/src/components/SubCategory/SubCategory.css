@@ -89,3 +89,12 @@ h1 {
 .subcategories-container::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #4d90fe, #357ae8);
 }
+
+/* Uploaded subcategory image inside the button */
+.subcategory-button-image {
+    width: 72px;
+    height: 72px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+}

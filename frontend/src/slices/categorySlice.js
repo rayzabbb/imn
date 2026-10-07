@@ -1,5 +1,33 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getCategories, getSubCategoriesByCategory, getProductsBySubCategory, getProductById, addProduct } from '../services/categoryservice';
+import {
+  getCategories,
+  getSubCategoriesByCategory,
+  getProductsBySubCategory,
+  getAllProducts,
+  getProductById,
+  addProduct,
+  addCategory,
+  addSubCategory,
+  setCategoryImage,
+  setSubCategoryImage,
+} from '../services/categoryservice';
+
+// The backend returns plain-text error bodies (GlobalExceptionHandler)
+const extractErrorMessage = (error, fallback) => {
+  if (error?.response?.status === 401) {
+    return 'פג תוקף ההתחברות. יש להתנתק, להתחבר מחדש ולנסות שוב.';
+  }
+  if (!error?.response) {
+    return 'אין חיבור לשרת. ודאו שהשרת פועל ונסו שוב.';
+  }
+  if (typeof error?.response?.data === 'string' && error.response.data) {
+    return error.response.data;
+  }
+  if (error?.response?.status === 403) {
+    return 'אין לך הרשאה לבצע פעולה זו';
+  }
+  return fallback;
+};
 
 // פעולה אסינכרונית להורדת קטגוריות
 export const fetchCategories = createAsyncThunk(
@@ -28,6 +56,14 @@ export const fetchProductsBySubCategory = createAsyncThunk(
   }
 );
 
+// פעולה אסינכרונית להורדת כל המוצרים הזמינים (לדף הבית)
+export const fetchAllProducts = createAsyncThunk(
+  'category/fetchAllProducts',
+  async () => {
+    return await getAllProducts();
+  }
+);
+
 // פעולה אסינכרונית להורדת מוצר בודד לפי מזהה
 export const fetchProductById = createAsyncThunk(
   'category/fetchProductById',
@@ -37,12 +73,65 @@ export const fetchProductById = createAsyncThunk(
   }
 );
 
-// פעולה אסינכרונית ליצירת מוצר חדש (פרסום חפץ)
+// פעולה אסינכרונית ליצירת מוצר חדש (פרסום חפץ), עם תמונה אופציונלית
 export const createProduct = createAsyncThunk(
   'category/createProduct',
-  async (productPayload) => {
-    const product = await addProduct(productPayload);
-    return product;
+  async ({ product, imageFile }, { rejectWithValue }) => {
+    try {
+      return await addProduct(product, imageFile);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'אירעה שגיאה בפרסום החפץ. נסו שוב.'));
+    }
+  }
+);
+
+// ניהול קטלוג (מנהל בלבד): יצירת קטגוריה עם תמונה אופציונלית
+export const createCategory = createAsyncThunk(
+  'category/createCategory',
+  async (payload, { rejectWithValue }) => {
+    try {
+      return await addCategory(payload);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'שגיאה ביצירת הקטגוריה'));
+    }
+  }
+);
+
+// ניהול קטלוג (מנהל בלבד): יצירת תת-קטגוריה עם תמונה אופציונלית
+export const createSubCategory = createAsyncThunk(
+  'category/createSubCategory',
+  async (payload, { rejectWithValue }) => {
+    try {
+      const subCategory = await addSubCategory(payload);
+      return { categoryId: payload.categoryId, subCategory };
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'שגיאה ביצירת תת-הקטגוריה'));
+    }
+  }
+);
+
+// ניהול קטלוג (מנהל בלבד): החלפה/הסרה של תמונת קטגוריה (imageFile=null מסיר)
+export const updateCategoryImage = createAsyncThunk(
+  'category/updateCategoryImage',
+  async ({ categoryId, imageFile }, { rejectWithValue }) => {
+    try {
+      return await setCategoryImage(categoryId, imageFile);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'שגיאה בעדכון תמונת הקטגוריה'));
+    }
+  }
+);
+
+// ניהול קטלוג (מנהל בלבד): החלפה/הסרה של תמונת תת-קטגוריה (imageFile=null מסיר)
+export const updateSubCategoryImage = createAsyncThunk(
+  'category/updateSubCategoryImage',
+  async ({ categoryId, subCategoryId, imageFile }, { rejectWithValue }) => {
+    try {
+      const subCategory = await setSubCategoryImage(subCategoryId, imageFile);
+      return { categoryId, subCategory };
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'שגיאה בעדכון תמונת תת-הקטגוריה'));
+    }
   }
 );
 
@@ -53,6 +142,9 @@ const categorySlice = createSlice({
     categories: [],
     subCategoryList: {},
     products: {},
+    allProducts: [],
+    allProductsLoading: false,
+    allProductsError: null,
     productDetails: {},
     loading: false,
     error: null,
@@ -100,6 +192,20 @@ const categorySlice = createSlice({
       state.error = action.error.message;
     });
 
+    // טיפול בטעינת כל המוצרים (דף הבית) - דגל טעינה נפרד, כדי לא להתנגש עם שאר הטעינות
+    builder.addCase(fetchAllProducts.pending, (state) => {
+      state.allProductsLoading = true;
+      state.allProductsError = null;
+    });
+    builder.addCase(fetchAllProducts.fulfilled, (state, action) => {
+      state.allProductsLoading = false;
+      state.allProducts = action.payload;
+    });
+    builder.addCase(fetchAllProducts.rejected, (state, action) => {
+      state.allProductsLoading = false;
+      state.allProductsError = action.error.message;
+    });
+
     // טיפול בטעינת מוצר בודד
     builder.addCase(fetchProductById.pending, (state) => {
       state.loading = true;
@@ -127,7 +233,39 @@ const categorySlice = createSlice({
     });
     builder.addCase(createProduct.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.error.message;
+      state.error = action.payload || action.error.message;
+    });
+
+    // ניהול קטלוג - עדכון הרשימות הקיימות במקום לטעון הכל מחדש
+    builder.addCase(createCategory.fulfilled, (state, action) => {
+      state.categories = [...(state.categories || []), action.payload];
+      state.subCategoryList[action.payload.id] = [];
+    });
+    builder.addCase(updateCategoryImage.fulfilled, (state, action) => {
+      const updated = action.payload;
+      state.categories = (state.categories || []).map((c) =>
+        c.id === updated.id ? { ...c, imageUrl: updated.imageUrl } : c
+      );
+    });
+    builder.addCase(createSubCategory.fulfilled, (state, action) => {
+      const { categoryId, subCategory } = action.payload;
+      state.subCategoryList[categoryId] = [...(state.subCategoryList[categoryId] || []), subCategory];
+      state.categories = (state.categories || []).map((c) =>
+        String(c.id) === String(categoryId)
+          ? { ...c, subCategories: [...(c.subCategories || []), subCategory] }
+          : c
+      );
+    });
+    builder.addCase(updateSubCategoryImage.fulfilled, (state, action) => {
+      const { categoryId, subCategory } = action.payload;
+      const replace = (list) =>
+        (list || []).map((sc) => (sc.id === subCategory.id ? { ...sc, imageUrl: subCategory.imageUrl } : sc));
+      if (state.subCategoryList[categoryId]) {
+        state.subCategoryList[categoryId] = replace(state.subCategoryList[categoryId]);
+      }
+      state.categories = (state.categories || []).map((c) =>
+        String(c.id) === String(categoryId) ? { ...c, subCategories: replace(c.subCategories) } : c
+      );
     });
   },
 });

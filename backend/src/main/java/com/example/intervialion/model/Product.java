@@ -11,6 +11,9 @@ public class Product {
     private String ManufacturerNameOrBrand;
     private String quality;
 
+    // Public URL path of the uploaded image (see ImageStorageService), or null.
+    private String imageUrl;
+
     // Lifecycle of the donation: WITH_DONOR (default, just published) ->
     // AT_CENTER -> TAKEN. Stored as STRING so future statuses can be added
     // without an ordinal-based data migration.
@@ -46,6 +49,9 @@ public class Product {
     public void setManufacturerNameOrBrand(String manufacturerNameOrBrand) { this.ManufacturerNameOrBrand = manufacturerNameOrBrand; }
     public String getQuality() { return quality; }
     public void setQuality(String quality) { this.quality = quality; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
     public ProductStatus getStatus() { return status; }
     public void setStatus(ProductStatus status) { this.status = status; }

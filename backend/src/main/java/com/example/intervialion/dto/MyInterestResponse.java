@@ -15,6 +15,7 @@ public record MyInterestResponse(
         String name,
         String manufacturerNameOrBrand,
         String quality,
+        String imageUrl,
         ProductStatus status,
         LocalDateTime expressedAt
 ) {

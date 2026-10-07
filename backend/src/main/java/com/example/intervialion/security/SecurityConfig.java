@@ -19,9 +19,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * Filter is what actually decides who's making the request, from a verified
  * token, before any controller runs.
  * <p>
- * Public: browsing (categories/subcategories/products), register/login, and
- * the H2 console (a local dev tool, unrelated to the app's own auth).
- * Everything else requires a valid Bearer token.
+ * Public: browsing (categories/subcategories/products), uploaded images,
+ * register/login, and the H2 console (a local dev tool, unrelated to the
+ * app's own auth). Creating categories/subcategories or changing their
+ * images is MANAGER-only. Everything else requires a valid Bearer token.
  */
 @Configuration
 @EnableWebSecurity
@@ -68,8 +69,11 @@ public class SecurityConfig {
                                 "/api/manger/**",
                                 "/api/product/GetProducts",
                                 "/api/product/GetProductsBySubCategory/**",
-                                "/api/product/GetProductById/**"
+                                "/api/product/GetProductById/**",
+                                "/api/images/**"
                         ).permitAll()
+                        // Any non-GET on categories/subcategories is a catalog change.
+                        .requestMatchers("/api/category/**", "/api/subcategory/**").hasRole("MANAGER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
