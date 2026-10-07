@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { loginUser, registerUser } from '../services/userservice';
-import { getAuthToken, setAuthToken, clearAuthToken } from '../services/authToken';
+import { getAuthToken, setAuthToken, clearAuthToken, isTokenExpired } from '../services/authToken';
 
 // Reads a plain-text backend error message out of an axios error, falling
 // back to a generic one when the response has none (network failure, etc).
@@ -38,6 +38,13 @@ const persistUser = (user) => {
 // are present - the token is what the backend actually trusts on every
 // subsequent request (via httpClient.js's interceptor), not this stored user
 // object, which is display-only.
+// An expired token (they last 24h) would leave the UI looking logged in while
+// the backend rejects every protected request - drop it and start logged out.
+if (getAuthToken() && isTokenExpired(getAuthToken())) {
+    clearAuthToken();
+    persistUser(null);
+}
+
 const storedUser = loadStoredUser();
 const storedToken = getAuthToken();
 const hasStoredSession = !!(storedUser && storedToken);

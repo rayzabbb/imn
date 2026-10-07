@@ -24,3 +24,15 @@ export const setAuthToken = (token) => {
 };
 
 export const clearAuthToken = () => setAuthToken(null);
+
+// True when the JWT's "exp" claim is in the past (or the token can't be read).
+// Only a client-side hint for the UI - the backend still verifies every token.
+export const isTokenExpired = (token) => {
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const { exp } = JSON.parse(atob(payload));
+    return typeof exp === 'number' && exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+};
