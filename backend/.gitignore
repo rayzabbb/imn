@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Uploaded images ###
+uploads/
+
+### Local secrets / machine-specific config ###
+application-local.properties

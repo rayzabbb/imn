@@ -11,6 +11,7 @@ import com.example.intervialion.repository.SubCategoryRepository;
 import com.example.intervialion.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -32,6 +33,8 @@ public class DataSeeder implements CommandLineRunner {
     private ProductRepository productRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private record ProductSeed(String name, String brand, String quality) {
     }
@@ -84,6 +87,13 @@ public class DataSeeder implements CommandLineRunner {
         // have it NULL after ddl-auto=update adds the column. Backfill them to the
         // default WITH_DONOR so the Personal Area always has a real status to show.
         backfillMissingProductStatus();
+
+        // One-time migration: accounts created before real authentication was
+        // added (including the sellers above, on a database that already had
+        // them) still have their plaintext password. Re-hash any password that
+        // isn't already a BCrypt hash, so every account keeps logging in with
+        // the same credentials as before.
+        backfillPasswordHashes();
     }
 
     private void backfillMissingProductStatus() {
@@ -93,6 +103,16 @@ public class DataSeeder implements CommandLineRunner {
         withoutStatus.forEach(p -> p.setStatus(ProductStatus.WITH_DONOR));
         if (!withoutStatus.isEmpty()) {
             productRepository.saveAll(withoutStatus);
+        }
+    }
+
+    private void backfillPasswordHashes() {
+        List<User> plaintext = userRepository.findAll().stream()
+                .filter(u -> u.getPassword() != null && !u.getPassword().startsWith("$2"))
+                .toList();
+        plaintext.forEach(u -> u.setPassword(passwordEncoder.encode(u.getPassword())));
+        if (!plaintext.isEmpty()) {
+            userRepository.saveAll(plaintext);
         }
     }
 
@@ -107,7 +127,7 @@ public class DataSeeder implements CommandLineRunner {
 
         User noa = new User();
         noa.setUsername("noa_levi");
-        noa.setPassword("seed1234");
+        noa.setPassword(passwordEncoder.encode("seed1234"));
         noa.setEmail("noa.levi@example.com");
         noa.setPhone(501234567);
         noa.setCity("תל אביב");
@@ -116,7 +136,7 @@ public class DataSeeder implements CommandLineRunner {
 
         User yossi = new User();
         yossi.setUsername("yossi_cohen");
-        yossi.setPassword("seed1234");
+        yossi.setPassword(passwordEncoder.encode("seed1234"));
         yossi.setEmail("yossi.cohen@example.com");
         yossi.setPhone(502345678);
         yossi.setCity("חיפה");
@@ -125,7 +145,7 @@ public class DataSeeder implements CommandLineRunner {
 
         User michal = new User();
         michal.setUsername("michal_david");
-        michal.setPassword("seed1234");
+        michal.setPassword(passwordEncoder.encode("seed1234"));
         michal.setEmail("michal.david@example.com");
         michal.setPhone(503456789);
         michal.setCity("ירושלים");

@@ -78,7 +78,7 @@ const ProductDetails = () => {
     if (!isLoggedIn || !currentUser?.id) {
       return;
     }
-    getInterestStatus(productId, currentUser.id)
+    getInterestStatus(productId)
       .then(setInterest)
       .catch(() => {
         // Silent: the button just falls back to its default "not interested"
@@ -93,7 +93,7 @@ const ProductDetails = () => {
     }
     setDonorContactLoading(true);
     setDonorContactError(null);
-    getDonorContact(productId, currentUser.id)
+    getDonorContact(productId)
       .then(setDonorContact)
       .catch(() => setDonorContactError('שגיאה בטעינת פרטי הקשר של המוסר'))
       .finally(() => setDonorContactLoading(false));
@@ -111,7 +111,7 @@ const ProductDetails = () => {
     setInterestLoading(true);
     setInterestError(null);
     const action = interest.interested ? cancelInterest : expressInterest;
-    action(productId, currentUser.id)
+    action(productId)
       .then(setInterest)
       .catch((err) => {
         setInterestError(

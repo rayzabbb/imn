@@ -13,7 +13,7 @@ import { getInterestedUsers } from '../../services/interestservice';
  * to bring the item to the collection center, where any interested user
  * (or anyone at all) may come collect it.
  */
-const InterestedUsersPanel = ({ productId, requesterUserId }) => {
+const InterestedUsersPanel = ({ productId }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -21,11 +21,11 @@ const InterestedUsersPanel = ({ productId, requesterUserId }) => {
   useEffect(() => {
     setLoading(true);
     setLoadError(null);
-    getInterestedUsers(productId, requesterUserId)
+    getInterestedUsers(productId)
       .then(setUsers)
       .catch(() => setLoadError('שגיאה בטעינת רשימת המתעניינים'))
       .finally(() => setLoading(false));
-  }, [productId, requesterUserId]);
+  }, [productId]);
 
   if (loading) {
     return <div className="pa-interested-panel pa-interested-panel--loading">טוען רשימת מתעניינים...</div>;

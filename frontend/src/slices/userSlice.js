@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { loginUser, registerUser } from '../services/userservice';
+import { getAuthToken, setAuthToken, clearAuthToken } from '../services/authToken';
 
 // Reads a plain-text backend error message out of an axios error, falling
 // back to a generic one when the response has none (network failure, etc).
@@ -33,7 +34,13 @@ const persistUser = (user) => {
     }
 };
 
+// A session only counts as logged in when BOTH the user profile and a JWT
+// are present - the token is what the backend actually trusts on every
+// subsequent request (via httpClient.js's interceptor), not this stored user
+// object, which is display-only.
 const storedUser = loadStoredUser();
+const storedToken = getAuthToken();
+const hasStoredSession = !!(storedUser && storedToken);
 
 export const signUp = createAsyncThunk("user/signUp",
     async (user, { rejectWithValue }) => {
@@ -62,10 +69,10 @@ const userSlice = createSlice({
     name: "user",
     //נתונים משותפים
     initialState: {//מצב ראשוני
-        currentUser: storedUser || {},//משתמש נוכחי, משוחזר מ-localStorage אם קיים
+        currentUser: hasStoredSession ? storedUser : {},//משתמש נוכחי, משוחזר מ-localStorage אם קיים טוקן תקף
         loading: false,//מבוצעת
         error: "",
-        isLoggedIn: !!storedUser
+        isLoggedIn: hasStoredSession
     },
     //עדכון רגיל - סיכרוני
     reducers: {
@@ -79,6 +86,7 @@ const userSlice = createSlice({
             state.currentUser = {};
             state.isLoggedIn = false;
             persistUser(null);
+            clearAuthToken();
 
         },
         setUser: (state, action) => {
@@ -98,11 +106,13 @@ const userSlice = createSlice({
         //הפעולה הצליחה
         builder
             .addCase(signUp.fulfilled, (state, action) => {
-                state.currentUser = action.payload;
+                const { token, user } = action.payload;
+                state.currentUser = user;
                 state.loading = false;
                 state.isLoggedIn = true; // הרשמה מחברת אותך אוטומטית
                 state.error = "";
-                persistUser(action.payload);
+                persistUser(user);
+                setAuthToken(token);
 
             })
 
@@ -120,11 +130,13 @@ const userSlice = createSlice({
             })
             // Login cases
             .addCase(login.fulfilled, (state, action) => {
-                state.currentUser = action.payload;
+                const { token, user } = action.payload;
+                state.currentUser = user;
                 state.loading = false;
                 state.isLoggedIn = true; // מעדכן שהמשתמש מחובר
                 state.error = "";
-                persistUser(action.payload);
+                persistUser(user);
+                setAuthToken(token);
 
             })
             .addCase(login.pending, (state) => {

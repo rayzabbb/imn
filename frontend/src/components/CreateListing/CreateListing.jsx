@@ -100,7 +100,6 @@ const CreateListing = () => {
           manufacturerNameOrBrand: form.manufacturerNameOrBrand.trim(),
           quality: form.quality,
           subCategoryId: Number(form.subCategoryId),
-          userId: currentUser.id,
         })
       ).unwrap();
 

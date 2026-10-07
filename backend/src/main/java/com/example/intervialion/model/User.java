@@ -50,6 +50,16 @@ public class User {
 
 
 
+    /**
+     * The authority granted to this account. Derived from the existing
+     * Manger/User inheritance (no new column) so the pre-existing
+     * manager concept becomes a real Spring Security role: overridden to
+     * "MANAGER" in Manger.
+     */
+    public String getRole() {
+        return "USER";
+    }
+
     public Long getId() {
         return id;
     }

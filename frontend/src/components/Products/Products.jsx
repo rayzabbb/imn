@@ -8,6 +8,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
+import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined';
 import './Product.css';
 
 const QUALITY_STYLES = {
@@ -187,6 +188,11 @@ const Products = () => {
                   )}
                   {product.quality && (
                     <span className={`quality-badge ${qualityClass}`}>{product.quality}</span>
+                  )}
+                  {product.status === 'AT_CENTER' && (
+                    <span className="quality-badge product-status-badge--at-center">
+                      <WarehouseOutlinedIcon fontSize="inherit" /> במרכז האיסוף
+                    </span>
                   )}
                 </div>
               </Link>

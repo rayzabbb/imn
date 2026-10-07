@@ -6,6 +6,7 @@ import com.example.intervialion.model.User;
 import com.example.intervialion.repository.InterestRepository;
 import com.example.intervialion.repository.ProductRepository;
 import com.example.intervialion.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,13 +18,16 @@ public class UserService {
     private final UserRepository userRepository;
     private final InterestRepository interestRepository;
     private final ProductRepository productRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository,
                         InterestRepository interestRepository,
-                        ProductRepository productRepository) {
+                        ProductRepository productRepository,
+                        PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.interestRepository = interestRepository;
         this.productRepository = productRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<User> getAllUsers() {
@@ -35,6 +39,7 @@ public class UserService {
     }
 
     public User addUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
@@ -57,28 +62,35 @@ public class UserService {
         userRepository.delete(user);
     }
 
+    /** If a plaintext password is included, hash it - never persist one as-is. */
     public User save(User user) {
-        return userRepository.save(user);
-    }
-
-    /**
-     * Rejects a duplicate username, otherwise persists the new user and
-     * returns it (so the caller gets the generated id back).
-     */
-    public User registerUser(User user) {
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new InvalidRequestException("Username already exists");
+        if (user.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         return userRepository.save(user);
     }
 
     /**
-     * Verifies credentials and returns the matching user, or null when the
-     * username is unknown or the password doesn't match.
+     * Rejects a duplicate username, otherwise hashes the password (BCrypt -
+     * plaintext is never persisted) and returns the saved user (so the
+     * caller gets the generated id back).
+     */
+    public User registerUser(User user) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new InvalidRequestException("Username already exists");
+        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+
+    /**
+     * Verifies credentials against the stored BCrypt hash and returns the
+     * matching user, or null when the username is unknown or the password
+     * doesn't match.
      */
     public User login(String username, String password) {
         User user = userRepository.findByUsername(username).orElse(null);
-        if (user == null || user.getPassword() == null || !user.getPassword().equals(password)) {
+        if (user == null || user.getPassword() == null || !passwordEncoder.matches(password, user.getPassword())) {
             return null;
         }
         return user;

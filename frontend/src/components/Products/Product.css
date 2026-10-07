@@ -272,6 +272,12 @@
   color: var(--prod-text-muted);
 }
 
+.product-status-badge--at-center {
+  gap: 4px;
+  background-color: #fff7ed;
+  color: #c2410c;
+}
+
 .product-card--skeleton {
   height: 260px;
   background: linear-gradient(90deg, #f3f4f6 25%, #ececec 37%, #f3f4f6 63%);

@@ -57,26 +57,22 @@ const PersonalArea = () => {
 
   useEffect(() => {
     if (currentUser?.id) {
-      dispatch(fetchMyProducts(currentUser.id));
+      dispatch(fetchMyProducts());
     }
   }, [dispatch, currentUser?.id]);
 
   useEffect(() => {
     if (currentUser?.id) {
-      dispatch(fetchMyInterests(currentUser.id));
+      dispatch(fetchMyInterests());
     }
   }, [dispatch, currentUser?.id]);
 
   const handleRetry = () => {
-    if (currentUser?.id) {
-      dispatch(fetchMyProducts(currentUser.id));
-    }
+    dispatch(fetchMyProducts());
   };
 
   const handleRetryInterests = () => {
-    if (currentUser?.id) {
-      dispatch(fetchMyInterests(currentUser.id));
-    }
+    dispatch(fetchMyInterests());
   };
 
   const handleDeleteClick = (productId) => {
@@ -87,7 +83,7 @@ const PersonalArea = () => {
 
     setDeletingId(productId);
     setDeleteError(null);
-    dispatch(removeMyProduct({ productId, requesterUserId: currentUser.id }))
+    dispatch(removeMyProduct(productId))
       .unwrap()
       .catch((err) => setDeleteError(typeof err === 'string' ? err : 'שגיאה במחיקת המוצר'))
       .finally(() => {
@@ -108,7 +104,7 @@ const PersonalArea = () => {
 
     setMovingId(productId);
     setMoveError(null);
-    dispatch(moveMyProductToCenter({ productId, requesterUserId: currentUser.id }))
+    dispatch(moveMyProductToCenter(productId))
       .unwrap()
       .catch((err) => setMoveError(typeof err === 'string' ? err : 'שגיאה בהעברת המוצר למרכז'))
       .finally(() => {
@@ -125,7 +121,7 @@ const PersonalArea = () => {
 
     setMarkingTakenId(productId);
     setTakenError(null);
-    dispatch(markMyProductTaken({ productId, requesterUserId: currentUser.id }))
+    dispatch(markMyProductTaken(productId))
       .unwrap()
       .catch((err) => setTakenError(typeof err === 'string' ? err : 'שגיאה בסימון כניתן'))
       .finally(() => {
@@ -265,7 +261,7 @@ const PersonalArea = () => {
                       </div>
 
                       {product.status === 'WITH_DONOR' && isExpanded && (
-                        <InterestedUsersPanel productId={product.id} requesterUserId={currentUser.id} />
+                        <InterestedUsersPanel productId={product.id} />
                       )}
 
                       {product.status === 'WITH_DONOR' && (
@@ -406,7 +402,6 @@ const PersonalArea = () => {
       {editingProduct && (
         <EditProductModal
           product={editingProduct}
-          requesterUserId={currentUser.id}
           onClose={() => setEditingProduct(null)}
         />
       )}

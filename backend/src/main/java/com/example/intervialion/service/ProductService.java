@@ -36,12 +36,14 @@ public class ProductService {
         this.interestRepository = interestRepository;
     }
 
+    /** Public browsing listing - excludes TAKEN items (already given away). */
     public List<Product> getAllProducts() {
-        return productRepository.findAll();
+        return productRepository.findByStatusNot(ProductStatus.TAKEN);
     }
 
+    /** Public browsing listing - excludes TAKEN items (already given away). */
     public List<Product> getProductsBySubCategoryId(Long subCategoryId) {
-        return productRepository.findBySubCategoryId(subCategoryId);
+        return productRepository.findBySubCategoryIdAndStatusNot(subCategoryId, ProductStatus.TAKEN);
     }
 
     public Product getProductById(Long id) {
@@ -49,18 +51,16 @@ public class ProductService {
     }
 
     /**
-     * Validates and persists a new listing. The validation order and the exact
-     * messages match what ProductController returned before the refactor.
+     * Validates and persists a new listing, owned by the authenticated
+     * caller - authenticatedUserId comes from the verified JWT, never from
+     * the request body.
      */
-    public Product createProduct(ProductCreateRequest request) {
+    public Product createProduct(ProductCreateRequest request, Long authenticatedUserId) {
         if (request.name() == null || request.name().isBlank()) {
             throw new InvalidRequestException("Product name is required");
         }
         if (request.subCategoryId() == null) {
             throw new InvalidRequestException("subCategoryId is required");
-        }
-        if (request.userId() == null) {
-            throw new InvalidRequestException("userId is required");
         }
 
         SubCategory subCategory = subCategoryRepository.findById(request.subCategoryId()).orElse(null);
@@ -68,7 +68,7 @@ public class ProductService {
             throw new InvalidRequestException("Invalid subCategoryId");
         }
 
-        User user = userRepository.findById(request.userId()).orElse(null);
+        User user = userRepository.findById(authenticatedUserId).orElse(null);
         if (user == null) {
             throw new InvalidRequestException("Invalid userId");
         }
@@ -84,9 +84,10 @@ public class ProductService {
     }
 
     /**
-     * A donor's own products for the Personal Area, shaped into
-     * ProductSummaryResponse (Product's own JSON hides category/subCategory
-     * via @JsonBackReference, and the donor needs those ids to edit).
+     * The authenticated caller's own products for the Personal Area, shaped
+     * into ProductSummaryResponse (Product's own JSON hides category/
+     * subCategory via @JsonBackReference, and the donor needs those ids to
+     * edit).
      */
     public List<ProductSummaryResponse> getProductsByUser(Long userId) {
         return productRepository.findByUserId(userId).stream()

@@ -59,11 +59,13 @@ export const addProduct = async (productPayload) => {
   }
 };
 
-// Fetch the logged-in user's own products, for the Personal Area.
-// The backend returns 204 (empty body) when the user has no products yet.
-export const getProductsByUser = async (userId) => {
+// Fetch the logged-in user's own products, for the Personal Area. Identity
+// comes from the JWT (attached by httpClient.js's interceptor) - not a
+// userId in the URL. The backend returns 204 (empty body) when the user has
+// no products yet.
+export const getMyProducts = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/product/GetProductsByUser/${userId}`);
+    const response = await axios.get('http://localhost:8080/api/product/mine');
     return response.data || [];
   } catch (error) {
     console.error('Error fetching user products:', error);
@@ -71,13 +73,13 @@ export const getProductsByUser = async (userId) => {
   }
 };
 
-// Edit one of the logged-in user's own listings
-export const updateProduct = async (productId, payload, requesterUserId) => {
+// Edit one of the logged-in user's own listings. Ownership is enforced
+// backend-side from the JWT, not a requesterUserId the client would send.
+export const updateProduct = async (productId, payload) => {
   try {
     const response = await axios.put(
       `http://localhost:8080/api/product/updateProduct/${productId}`,
-      payload,
-      { params: { requesterUserId } }
+      payload
     );
     return response.data;
   } catch (error) {
@@ -86,12 +88,10 @@ export const updateProduct = async (productId, payload, requesterUserId) => {
   }
 };
 
-// Delete one of the logged-in user's own listings
-export const deleteProduct = async (productId, requesterUserId) => {
+// Delete one of the logged-in user's own listings.
+export const deleteProduct = async (productId) => {
   try {
-    await axios.delete(`http://localhost:8080/api/product/deleteProduct/${productId}`, {
-      params: { requesterUserId },
-    });
+    await axios.delete(`http://localhost:8080/api/product/deleteProduct/${productId}`);
     return productId;
   } catch (error) {
     console.error('Error deleting product:', error);
@@ -102,13 +102,9 @@ export const deleteProduct = async (productId, requesterUserId) => {
 // Collection-center step 1: donor brings the item to the center
 // (WITH_DONOR -> AT_CENTER). Not reserved for anyone - any interested user
 // (or anyone at all) may come collect it there.
-export const moveProductToCenter = async (productId, requesterUserId) => {
+export const moveProductToCenter = async (productId) => {
   try {
-    const response = await axios.put(
-      `http://localhost:8080/api/product/${productId}/moveToCenter`,
-      null,
-      { params: { requesterUserId } }
-    );
+    const response = await axios.put(`http://localhost:8080/api/product/${productId}/moveToCenter`);
     return response.data;
   } catch (error) {
     console.error('Error moving product to center:', error);
@@ -117,13 +113,9 @@ export const moveProductToCenter = async (productId, requesterUserId) => {
 };
 
 // Collection-center step 2: donor confirms handoff is done (AT_CENTER -> TAKEN)
-export const markProductTaken = async (productId, requesterUserId) => {
+export const markProductTaken = async (productId) => {
   try {
-    const response = await axios.put(
-      `http://localhost:8080/api/product/${productId}/markTaken`,
-      null,
-      { params: { requesterUserId } }
-    );
+    const response = await axios.put(`http://localhost:8080/api/product/${productId}/markTaken`);
     return response.data;
   } catch (error) {
     console.error('Error marking product as taken:', error);

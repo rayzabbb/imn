@@ -12,7 +12,7 @@ const QUALITY_OPTIONS = ['חדש', 'כמו חדש', 'משומש'];
  * quality, subCategory. Status is deliberately not editable here - it
  * belongs to the future interest/collection-center workflow.
  */
-const EditProductModal = ({ product, requesterUserId, onClose }) => {
+const EditProductModal = ({ product, onClose }) => {
   const dispatch = useDispatch();
   const { categories = [], subCategoryList = {} } = useSelector((state) => state.category);
 
@@ -89,7 +89,6 @@ const EditProductModal = ({ product, requesterUserId, onClose }) => {
       await dispatch(
         editMyProduct({
           productId: product.id,
-          requesterUserId,
           payload: {
             name: form.name.trim(),
             manufacturerNameOrBrand: form.manufacturerNameOrBrand.trim(),

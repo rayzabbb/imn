@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import {
-    getProductsByUser,
+    getMyProducts,
     updateProduct,
     deleteProduct,
     moveProductToCenter,
@@ -14,12 +14,13 @@ const extractErrorMessage = (error, fallback) => {
     return fallback;
 };
 
-// Loads the logged-in user's own listings, for the Personal Area.
+// Loads the logged-in user's own listings, for the Personal Area. Identity
+// comes from the JWT, not an argument here.
 export const fetchMyProducts = createAsyncThunk(
     'myProducts/fetchMyProducts',
-    async (userId, { rejectWithValue }) => {
+    async (_, { rejectWithValue }) => {
         try {
-            return await getProductsByUser(userId);
+            return await getMyProducts();
         } catch (error) {
             return rejectWithValue(extractErrorMessage(error, 'שגיאה בטעינת המוצרים שלך'));
         }
@@ -28,9 +29,9 @@ export const fetchMyProducts = createAsyncThunk(
 
 export const editMyProduct = createAsyncThunk(
     'myProducts/editMyProduct',
-    async ({ productId, payload, requesterUserId }, { rejectWithValue }) => {
+    async ({ productId, payload }, { rejectWithValue }) => {
         try {
-            return await updateProduct(productId, payload, requesterUserId);
+            return await updateProduct(productId, payload);
         } catch (error) {
             return rejectWithValue(extractErrorMessage(error, 'שגיאה בעדכון המוצר'));
         }
@@ -39,9 +40,9 @@ export const editMyProduct = createAsyncThunk(
 
 export const removeMyProduct = createAsyncThunk(
     'myProducts/removeMyProduct',
-    async ({ productId, requesterUserId }, { rejectWithValue }) => {
+    async (productId, { rejectWithValue }) => {
         try {
-            await deleteProduct(productId, requesterUserId);
+            await deleteProduct(productId);
             return productId;
         } catch (error) {
             return rejectWithValue(extractErrorMessage(error, 'שגיאה במחיקת המוצר'));
@@ -53,9 +54,9 @@ export const removeMyProduct = createAsyncThunk(
 // anyone - any interested user (or anyone at all) may collect it there.
 export const moveMyProductToCenter = createAsyncThunk(
     'myProducts/moveMyProductToCenter',
-    async ({ productId, requesterUserId }, { rejectWithValue }) => {
+    async (productId, { rejectWithValue }) => {
         try {
-            return await moveProductToCenter(productId, requesterUserId);
+            return await moveProductToCenter(productId);
         } catch (error) {
             return rejectWithValue(extractErrorMessage(error, 'שגיאה בהעברת המוצר למרכז'));
         }
@@ -65,9 +66,9 @@ export const moveMyProductToCenter = createAsyncThunk(
 // Collection-center step 2: confirm the handoff is complete.
 export const markMyProductTaken = createAsyncThunk(
     'myProducts/markMyProductTaken',
-    async ({ productId, requesterUserId }, { rejectWithValue }) => {
+    async (productId, { rejectWithValue }) => {
         try {
-            return await markProductTaken(productId, requesterUserId);
+            return await markProductTaken(productId);
         } catch (error) {
             return rejectWithValue(extractErrorMessage(error, 'שגיאה בסימון כניתן'));
         }

@@ -9,12 +9,12 @@ const extractErrorMessage = (error, fallback) => {
 };
 
 // Loads every product the logged-in user has expressed interest in, for the
-// Personal Area's "מוצרים שמעניינים אותי" section.
+// Personal Area's "מוצרים שמעניינים אותי" section. Identity comes from the JWT.
 export const fetchMyInterests = createAsyncThunk(
     'myInterests/fetchMyInterests',
-    async (userId, { rejectWithValue }) => {
+    async (_, { rejectWithValue }) => {
         try {
-            return await getMyInterests(userId);
+            return await getMyInterests();
         } catch (error) {
             return rejectWithValue(extractErrorMessage(error, 'שגיאה בטעינת המוצרים שמעניינים אותך'));
         }

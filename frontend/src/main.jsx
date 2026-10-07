@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux'; // ייבוא של Provider
 import App from './App';
 import store from './app/store'; // הייבוא של ה-Redux store שלך
+import './services/httpClient'; // מצרף את ה-JWT לכל בקשה יוצאת (side effect only)
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

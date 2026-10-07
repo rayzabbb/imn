@@ -1,0 +1,10 @@
+# Copy to application-local.properties (git-ignored) and fill in.
+# Spring loads it automatically (spring.config.import in application.properties).
+
+# JWT signing secret: a random string of at least 32 characters (256 bits). Required.
+# e.g. generate one with: openssl rand -base64 48
+app.jwt.secret=
+
+# Optional: password for a seeded "admin" MANAGER account (catalog management).
+# Leave empty to skip creating it.
+app.seed.admin-password=
