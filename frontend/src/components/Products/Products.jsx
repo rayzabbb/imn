@@ -7,15 +7,8 @@ import SortIcon from '@mui/icons-material/Sort';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
-import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined';
+import ProductCard from './ProductCard';
 import './Product.css';
-
-const QUALITY_STYLES = {
-  'חדש': 'quality-badge--new',
-  'כמו חדש': 'quality-badge--like-new',
-  'משומש': 'quality-badge--used',
-};
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'החדשים ביותר' },
@@ -171,33 +164,9 @@ const Products = () => {
 
       {filteredProducts.length > 0 && (
         <div className="products-grid">
-          {filteredProducts.map((product) => {
-            const qualityClass = QUALITY_STYLES[product.quality] || 'quality-badge--default';
-            return (
-              <Link key={product.id} to={`/product/${product.id}`} className="product-card">
-                <div className="product-card-visual">
-                  <Inventory2OutlinedIcon />
-                </div>
-                <div className="product-card-body">
-                  <h3 className="product-card-name">{product.name}</h3>
-                  {product.manufacturerNameOrBrand && (
-                    <div className="product-card-brand">
-                      <SellOutlinedIcon fontSize="small" />
-                      <span>{product.manufacturerNameOrBrand}</span>
-                    </div>
-                  )}
-                  {product.quality && (
-                    <span className={`quality-badge ${qualityClass}`}>{product.quality}</span>
-                  )}
-                  {product.status === 'AT_CENTER' && (
-                    <span className="quality-badge product-status-badge--at-center">
-                      <WarehouseOutlinedIcon fontSize="inherit" /> במרכז האיסוף
-                    </span>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
+          {filteredProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
         </div>
       )}
     </div>

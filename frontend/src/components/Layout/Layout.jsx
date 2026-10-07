@@ -17,6 +17,7 @@ const Layout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isLoggedIn, currentUser } = useSelector((state) => state.user);
+  const isManager = isLoggedIn && currentUser?.role === "MANAGER";
 
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -41,6 +42,7 @@ const Layout = () => {
             <Link to="/" className="navbar-link">דף הבית</Link>
             <Link to="/category" className="navbar-link">קטגוריות</Link>
             <Link to="/about" className="navbar-link">עלינו</Link>
+            {isManager && <Link to="/admin" className="navbar-link">ניהול קטלוג</Link>}
           </nav>
 
           <div className="navbar-actions">
@@ -110,6 +112,9 @@ const Layout = () => {
               <Link to="/" className="navbar-link" onClick={closeMenu}>דף הבית</Link>
               <Link to="/category" className="navbar-link" onClick={closeMenu}>קטגוריות</Link>
               <Link to="/about" className="navbar-link" onClick={closeMenu}>עלינו</Link>
+              {isManager && (
+                <Link to="/admin" className="navbar-link" onClick={closeMenu}>ניהול קטלוג</Link>
+              )}
             </nav>
             {isLoggedIn ? (
               <>

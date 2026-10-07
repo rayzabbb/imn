@@ -1,0 +1,77 @@
+/* HorizontalScroller.css - round arrows on the sides of a horizontal row */
+
+.h-scroller {
+  position: relative;
+}
+
+.h-scroller-arrow {
+  position: absolute;
+  top: calc(50% - 6px); /* centre on the cards, not the row's bottom padding */
+  transform: translateY(-50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #eef0f3;
+  border-radius: 50%;
+  background-color: #fff;
+  color: #ff6a3d;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(31, 41, 55, 0.12);
+  transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.h-scroller-arrow:hover:not(:disabled) {
+  background-color: #ff6a3d;
+  border-color: #ff6a3d;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(255, 106, 61, 0.3);
+}
+
+.h-scroller-arrow:focus-visible {
+  outline: 2px solid #e85a2c;
+  outline-offset: 2px;
+}
+
+/* RTL: the start of the row is on the right */
+.h-scroller-arrow--prev {
+  right: -22px;
+}
+
+.h-scroller-arrow--next {
+  left: -22px;
+}
+
+.h-scroller-arrow--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Pages have ~20px side padding below this width - pull the arrows in */
+@media (max-width: 1260px) {
+  .h-scroller-arrow--prev {
+    right: -14px;
+  }
+
+  .h-scroller-arrow--next {
+    left: -14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .h-scroller-arrow {
+    width: 36px;
+    height: 36px;
+  }
+
+  .h-scroller-arrow--prev {
+    right: -6px;
+  }
+
+  .h-scroller-arrow--next {
+    left: -6px;
+  }
+}
