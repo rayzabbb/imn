@@ -37,3 +37,7 @@ uploads/
 
 ### Local secrets / machine-specific config ###
 application-local.properties
+
+### Local H2 database (contains user data) ###
+*.mv.db
+*.trace.db
