@@ -57,3 +57,4 @@ public class CategoryController {
         return updated == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(updated);
     }
 }
+
